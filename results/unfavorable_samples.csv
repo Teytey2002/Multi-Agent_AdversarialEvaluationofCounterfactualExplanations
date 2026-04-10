@@ -1,0 +1,6 @@
+age,workclass,fnlwgt,education,education-num,marital-status,occupation,relationship,race,sex,capital-gain,capital-loss,hours-per-week,native-country,prediction,proba,true_label
+44,Private,201599,11th,7,Never-married,Machine-op-inspct,Unmarried,Black,Female,0,0,40,United-States,0,0.0040580328,0
+53,Private,185846,HS-grad,9,Married-civ-spouse,Craft-repair,Husband,White,Male,0,0,40,United-States,0,0.39519432,0
+23,Private,285004,Bachelors,13,Never-married,Sales,Not-in-family,Asian-Pac-Islander,Male,0,0,50,Taiwan,0,0.023639238,0
+21,Private,174063,Assoc-voc,11,Never-married,Other-service,Own-child,White,Female,0,0,20,United-States,0,0.00059804745,0
+30,Private,285295,Bachelors,13,Married-civ-spouse,Other-service,Wife,Asian-Pac-Islander,Female,0,0,40,Philippines,0,0.41128862,0

@@ -1,0 +1,16 @@
+age,workclass,fnlwgt,education,education-num,marital-status,occupation,relationship,race,sex,capital-gain,capital-loss,hours-per-week,native-country,income,original_index
+44,nan,201599,11th,7,Never-married,Machine-op-inspct,Unmarried,Black,Female,80072,0,40,United-States,1,0
+44,Private,201599,11th,7,Never-married,Machine-op-inspct,Unmarried,Black,Female,91120,0,40,United-States,1,0
+44,Private,201599,11th,7,Never-married,Machine-op-inspct,Unmarried,Black,Female,79796,0,40,United-States,1,0
+53,Private,185846,HS-grad,9,Married-civ-spouse,Craft-repair,Husband,White,Male,65696,804,40,United-States,1,1
+53,Private,185846,HS-grad,9,Married-civ-spouse,Craft-repair,Husband,White,Male,61743,3685,40,United-States,1,1
+53,Private,185846,HS-grad,9,Married-civ-spouse,Craft-repair,Husband,White,Male,92835,0,40,United-States,1,1
+23,Private,285004,12th,13,Never-married,Sales,Not-in-family,Asian-Pac-Islander,Male,98801,0,50,Taiwan,1,2
+23,Private,285004,Bachelors,13,Never-married,Sales,Not-in-family,Asian-Pac-Islander,Male,0,2502,50,Taiwan,1,2
+23,Private,285004,7th-8th,13,Never-married,Sales,Not-in-family,Asian-Pac-Islander,Male,73459,0,50,Taiwan,1,2
+21,Never-worked,174063,Assoc-voc,11,Never-married,Other-service,Own-child,White,Female,92548,0,20,United-States,1,3
+21,Private,174063,Assoc-voc,11,Never-married,Other-service,Own-child,White,Female,99494,0,20,United-States,1,3
+21,Private,174063,Assoc-voc,11,Never-married,Other-service,Own-child,White,Female,76382,0,20,United-States,1,3
+30,Private,285295,Bachelors,13,Married-civ-spouse,nan,Wife,Asian-Pac-Islander,Female,0,0,92,Philippines,1,4
+30,Private,285295,Bachelors,13,Married-civ-spouse,Other-service,Wife,Asian-Pac-Islander,Female,20984,0,40,Philippines,1,4
+30,Private,285295,Bachelors,13,Married-civ-spouse,Other-service,Wife,Asian-Pac-Islander,Female,13070,0,40,Philippines,1,4

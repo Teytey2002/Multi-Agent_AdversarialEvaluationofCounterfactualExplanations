@@ -1,0 +1,4 @@
+model,accuracy,precision,recall,f1,model_path,metrics_path
+logistic_regression,0.8523902139420616,0.7413793103448276,0.5885372112917023,0.6561754887935145,models/logistic_regression.joblib,results/logistic_regression_metrics.json
+random_forest,0.8594533729143208,0.7401692384270782,0.6360136869118905,0.6841499884978146,models/random_forest.joblib,results/random_forest_metrics.json
+xgboost,0.8761388064284983,0.790422245108136,0.6565440547476475,0.7172897196261683,models/xgboost.joblib,results/xgboost_metrics.json
