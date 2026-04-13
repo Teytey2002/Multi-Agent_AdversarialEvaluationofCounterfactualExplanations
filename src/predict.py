@@ -4,7 +4,7 @@ import pandas as pd
 from data_loader import load_adult_dataset
 
 
-MODEL_PATH = "models/xgboost.joblib"
+MODEL_PATH = "models/logistic_regression.joblib"
 
 
 def main():

@@ -308,7 +308,7 @@ The goal of this script is to prepare input instances for counterfactual generat
 
 ### `src/generate_cf.py`
 
-Uses DiCE to generate counterfactual explanations.
+Uses DiCE to generate counterfactual explanations with basic realism constraints..
 
 #### What it does
 
@@ -316,10 +316,13 @@ Uses DiCE to generate counterfactual explanations.
 2. reloads the dataset to define the DiCE data object
 3. loads the sampled unfavorable cases
 4. defines the outcome variable for DiCE
-5. specifies which features are allowed to vary
-6. generates several counterfactuals per instance
-7. concatenates the generated counterfactuals
-8. saves them to `results/counterfactuals.csv`
+5. specifies a restricted set of actionable features (e.g. workclass, occupation, hours-per-week, capital-related variables)
+6. applies box constraints (permitted_range) to avoid unrealistic values (e.g. bounded capital-gain and working hours)
+7. balances proximity vs diversity in the generation process through weighted parameters
+8. applies post-hoc sparsity to limit the number of changes per counterfactual
+9. generates multiple counterfactuals per instance
+10. stores both the original instance and its counterfactuals in a structured format (with row_type and cf_rank)
+11. saves them to `results/counterfactuals.csv`
 
 This script is the first bridge between the predictive pipeline and the future evaluation framework.
 
@@ -327,16 +330,66 @@ This script is the first bridge between the predictive pipeline and the future e
 
 ### `src/cf_metrics.py`
 
-Initial script intended to compute metrics on the generated counterfactuals.
+Computes quantitative evaluation metrics for the generated counterfactual explanations, following the methodology described in the DiCE paper.
 
-The idea is to compute quantitative properties such as:
-- sparsity
-- proximity
-- plausibility
+#### What it does
 
-At the current stage, this script still needs refinement because the first version used only the generated counterfactual table and did not yet correctly pair every counterfactual with its true original instance.
+1. loads the generated counterfactual dataset (`counterfactuals.csv`)
 
-So this file should currently be considered **work in progress** rather than a finalized evaluation module.
+2. separates **original instances** and their associated **counterfactuals** using `original_index` and `row_type`
+
+3. identifies **continuous** and **categorical** features from the original dataset
+
+4. computes **MAD (Median Absolute Deviation)** for continuous features to normalize distances
+
+5. computes, for each instance:
+
+   * **Validity**
+     fraction of valid and unique counterfactuals
+
+   * **Continuous proximity**
+     normalized L1 distance (scaled by MAD) between original and counterfactuals
+
+   * **Categorical proximity**
+     proportion of unchanged categorical features
+
+   * **Sparsity**
+     proportion of features that remain unchanged
+
+   * **Continuous diversity**
+     pairwise distance between counterfactuals (continuous features)
+
+   * **Categorical diversity**
+     pairwise differences between counterfactuals (categorical features)
+
+   * **Count-based diversity**
+     fraction of features that differ between counterfactuals
+
+6. aggregates the metrics:
+
+   * per instance → `cf_metrics_per_instance.csv`
+   * global averages → `cf_metrics_global.csv`
+
+
+#### Notes
+
+* correctly pairs each counterfactual with its **true original instance**
+* follows the **evaluation protocol of the DiCE paper**
+* distinguishes between **continuous and categorical distances**
+* introduces **MAD-based normalization** for meaningful proximity computation
+* adds proper **diversity metrics**, which are essential for evaluating sets of counterfactuals
+
+
+#### Interpretation
+
+The computed metrics allow to analyze trade-offs between:
+
+* **validity vs realism**
+* **proximity vs diversity**
+* **sparsity vs actionability**
+
+These outputs form the quantitative foundation for the next stage of the project:
+the **Expert Witness agent**, which will rely on these metrics to provide structured, data-driven arguments in the multi-agent evaluation system.
 
 ---
 
