@@ -1,6 +1,6 @@
 age,workclass,fnlwgt,education,education-num,marital-status,occupation,relationship,race,sex,capital-gain,capital-loss,hours-per-week,native-country,prediction,proba,true_label
-20,,334105,HS-grad,9,Never-married,,Not-in-family,White,Female,0,0,40,United-States,0,0.014147190740533389,0
-62,,129246,HS-grad,9,Married-civ-spouse,,Husband,White,Male,0,0,40,United-States,0,0.3617370572712394,0
-18,Private,178310,Some-college,10,Never-married,Adm-clerical,Own-child,White,Female,0,0,20,United-States,0,0.0027555439782975897,0
-46,Private,155489,HS-grad,9,Married-civ-spouse,Machine-op-inspct,Husband,White,Male,0,0,43,United-States,0,0.23091501763897604,1
-47,Private,464945,HS-grad,9,Never-married,Transport-moving,Not-in-family,White,Male,0,0,45,United-States,0,0.048731424810010165,0
+20,,334105,HS-grad,9,Never-married,,Not-in-family,White,Female,0,0,40,United-States,0,0.014147190779550798,0
+62,,129246,HS-grad,9,Married-civ-spouse,,Husband,White,Male,0,0,40,United-States,0,0.36173705794682826,0
+18,Private,178310,Some-college,10,Never-married,Adm-clerical,Own-child,White,Female,0,0,20,United-States,0,0.0027555439809336677,0
+46,Private,155489,HS-grad,9,Married-civ-spouse,Machine-op-inspct,Husband,White,Male,0,0,43,United-States,0,0.2309150175962205,1
+47,Private,464945,HS-grad,9,Never-married,Transport-moving,Not-in-family,White,Male,0,0,45,United-States,0,0.04873142471159302,0

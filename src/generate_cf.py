@@ -60,6 +60,9 @@ def get_permitted_range():
 def build_dice_objects(model, data):
     """
     Build DiCE data/model/explainer objects.
+    data : full dataset (including both features and target) needed to fit the DiCE data object.
+    model : trained model with predict and predict_proba methods.
+    exp : DiCE explainer object.
     """
     d = dice_ml.Data(
         dataframe=data,
