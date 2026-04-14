@@ -128,25 +128,24 @@ PYTHONPATH=src python src/<script>.py
 ### Workflow
 1. Loads `models/logistic_regression.joblib`.
 2. Predicts class + probability on the entire Adult dataset.
-3. Filters *unfavorable* cases (predicted class = 0, i.e. ≤50 K).
-4. Randomly samples 5 unfavorable individuals (`random_state=42`).
-5. Saves the sample to CSV.
+3. Filters rows with NaN values (`?` markers in workclass / occupation) to guarantee clean downstream input.
+4. Filters *unfavorable* cases (predicted class = 0, i.e. ≤50 K).
+5. Randomly samples `SAMPLE_SIZE` unfavorable individuals (`random_state=42`).
+6. Adds an `is_false_negative` flag: `True` when the model predicted 0 but the true label was 1.
+7. Saves the sample to CSV.
 
 ### Key parameters
 | Parameter | Value | Notes |
 |-----------|-------|-------|
 | `MODEL_PATH` | `"models/logistic_regression.joblib"` | Trained pipeline |
-| Sample size | `5` | Number of unfavorable individuals to pick |
+| `SAMPLE_SIZE` | `10` | Number of unfavorable individuals to pick |
 | `random_state` | `42` | Reproducible sampling |
 
 ### Inputs / Outputs
 | | Description |
 |---|---|
 | **Input** | `models/logistic_regression.joblib`, OpenML Adult dataset |
-| **Output** | `results/unfavorable_samples.csv` (5 rows with features + prediction + proba + true_label) |
-
-### Note
-Some sampled rows may have NaN in `workclass` / `occupation` (original dataset missing values encoded as `?`). These are silently dropped in the next step (`generate_cf.py`).
+| **Output** | `results/unfavorable_samples.csv` (10 rows: features + prediction + proba + true_label + is_false_negative) |
 
 ---
 
@@ -163,7 +162,7 @@ Some sampled rows may have NaN in `workclass` / `occupation` (original dataset m
    - **Actionable features only** (workclass, occupation, hours-per-week, capital-gain, capital-loss).
    - **Box constraints** on continuous features to avoid absurd values.
    - Post-hoc sparsity via `posthoc_sparsity_param=0.1`.
-6. Saves a structured CSV with `row_type` (original / counterfactual), `original_index`, and `cf_rank` columns.
+6. Saves a structured CSV with `row_type` (original / counterfactual), `original_index`, `cf_rank`, and `cf_confidence` (model's P(class 1) for each row) columns.
 
 ### Key parameters
 | Parameter | Value | Notes |
@@ -199,7 +198,7 @@ Protected / immutable features (age, race, sex, native-country, education, marit
 | | Description |
 |---|---|
 | **Input** | `models/logistic_regression.joblib`, `results/unfavorable_samples.csv`, OpenML Adult dataset |
-| **Output** | `results/counterfactuals.csv` — structured table with originals + their CFs |
+| **Output** | `results/counterfactuals.csv` — structured table with originals + their CFs + `cf_confidence` per row |
 
 ---
 
@@ -224,7 +223,7 @@ Protected / immutable features (age, race, sex, native-country, education, marit
 ### Key parameters
 | Parameter | Value | Notes |
 |-----------|-------|-------|
-| MAD normalization | Per-column MAD from full dataset | Falls back to 1.0 if MAD = 0 |
+| MAD normalization | Per-column MAD from full dataset | Falls back to `std` if MAD = 0 (e.g. capital-gain/loss), then to 1.0 if both are 0 |
 | Proximity sign | Negative (continuous) | Paper convention: closer to 0 is better |
 | Sparsity convention | Higher is better | `1 − (changed / total)` |
 
