@@ -1,8 +1,8 @@
 # Pipeline Scripts — Per-Script Documentation
 
 > Quick reference for every script in `src/`.
-> Run order: **data_loader → preprocessing → models → train → predict → generate_cf → cf_metrics → case_builder**
-> (utils is a shared helper module, not run directly.)
+> Run order: **data_loader → preprocessing → models → train → predict → generate_cf → cf_metrics → case_builder → run_debate**
+> (utils is a shared helper module; agents/ is a package used by run_debate.)
 
 All scripts must be executed from the **repo root** with `PYTHONPATH=src`:
 
@@ -337,3 +337,106 @@ $env:PYTHONPATH="src"; python src/case_builder.py --pretty
 | — | `true_label` / `is_false_negative` | Ground-truth info from dataset |
 | — | `changes_summary` | Structured from/to diffs |
 | — | `metrics` | Real DiCE quality metrics |
+
+---
+
+## 10. `agents/` package
+
+**Purpose** — Multi-agent adversarial debate system for evaluating counterfactual explanations, adapted from the AutoGen PoC.
+
+### Package structure
+
+| Module | Description |
+|--------|-------------|
+| `__init__.py` | Package marker; re-exports `build_debate_agents`, `build_single_evaluator_agent`, `run_debate`, `run_single_llm` |
+| `prompts.py` | **Issue taxonomy** (placeholder — Ivan replaces this) + `get_issue_guidance()` formatter |
+| `agents.py` | 4 debate agents (Prosecutor, Defense, Expert\_Witness, Judge) + 1 single-LLM baseline (Single\_Evaluator) |
+| `config.py` | `LLMConfig` dataclass, provider resolution (Groq / Gemini / OpenAI), `build_model_client()` |
+| `debate.py` | `run_debate()` / `run_single_llm()` — orchestrates `SelectorGroupChat` with round-robin or auto speaker selection |
+| `utils.py` | `parse_judge_verdict()`, `serialise_message()`, `calculate_cost()`, `save_debate_transcript()`, `compute_agreement()` |
+
+### Agent roles
+
+| Agent | Role |
+|-------|------|
+| **Prosecutor** | Attacks CF quality — fairness, feasibility, actionability, low confidence |
+| **Defense** | Defends useful CFs, narrows claims, highlights actionable features |
+| **Expert\_Witness** | Technical analysis of real DiCE metrics, confidence scores, feature-change feasibility (**no SHAP**) |
+| **Judge** | Synthesises debate → structured JSON verdict (`fair` / `unfair` / `ambiguous`) |
+| **Single\_Evaluator** | Same task as Judge but without a debate (baseline comparison) |
+
+### Key design decisions (vs PoC)
+- **Multi-CF schema**: prompts handle `counterfactuals[]` array with per-CF `cf_confidence`, `features_changed`, `changes_summary`.
+- **Expert Witness — no SHAP**: analyses real DiCE metrics (validity, proximity, sparsity, diversity) + domain feasibility instead of mocked SHAP values.
+- **Placeholder taxonomy**: `prompts.py` contains a default 7-label taxonomy; Ivan's finalised taxonomy will replace it.
+- **Real data**: loads `results/cases.json` (from `case_builder.py`), not mock cases.
+
+### Environment setup
+Requires a `.env` file at the repo root with at least one API key:
+
+```
+GROQ_API_KEY=gsk_...
+# or
+GEMINI_API_KEY=AIza...
+# or
+OPENAI_API_KEY=sk-...
+```
+
+---
+
+## 11. `run_debate.py`
+
+**Purpose** — CLI entry point to run multi-agent debates (or single-LLM baselines) on real pipeline cases.
+
+### Workflow
+1. Loads `results/cases.json` (or a custom path via `--cases-file`).
+2. Optionally filters to specific case IDs (`--case-ids 0 2 5`).
+3. Resolves LLM provider/model from CLI args, env vars, or `.env` defaults.
+4. For each case, runs either a 4-agent debate (`run_debate`) or a single-LLM evaluation (`--single-llm`).
+5. Saves per-run results JSON + per-case Markdown transcripts to `results/debate_outputs/`.
+
+### CLI flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--provider` | `groq` | LLM provider: `groq`, `gemini`, `openai` |
+| `--model` | per-provider | Model override |
+| `--speaker-selection` | `round_robin` | `round_robin` or `auto` |
+| `--max-rounds` | `2` | Specialist rounds before Judge |
+| `--temperature` | `0.2` | Sampling temperature |
+| `--max-tokens` | `700` | Max completion tokens |
+| `--single-llm` | off | Run single-LLM baseline instead of debate |
+| `--case-ids` | all | Space-separated case IDs to run |
+| `--cases-file` | `results/cases.json` | Path to input cases |
+| `--delay` | auto | Seconds between cases (rate-limit cooldown) |
+| `--verbose` | off | Print agent messages live |
+
+### Example commands
+```bash
+# Multi-agent debate, all cases, Groq default
+$env:PYTHONPATH="src"; python src/run_debate.py
+
+# Single-LLM baseline, case 0 only, verbose
+$env:PYTHONPATH="src"; python src/run_debate.py --single-llm --case-ids 0 --verbose
+
+# Gemini provider, auto speaker selection
+$env:PYTHONPATH="src"; python src/run_debate.py --provider gemini --speaker-selection auto
+```
+
+### Inputs / Outputs
+| | Description |
+|---|---|
+| **Input** | `results/cases.json`, `.env` (API keys) |
+| **Output** | `results/debate_outputs/<model>/<mode>_<timestamp>/` containing `<mode>_results.json` + `transcripts/case_XX_transcript.md` |
+
+### Verdict JSON schema (per case)
+```json
+{
+  "case_id": 0,
+  "overall_assessment": "fair | unfair | ambiguous",
+  "flagged_issues": ["issue_label_1"],
+  "severity": "low | medium | high",
+  "confidence": 0.85,
+  "reasoning_summary": "...",
+  "recommended_action": "accept | review | reject"
+}
