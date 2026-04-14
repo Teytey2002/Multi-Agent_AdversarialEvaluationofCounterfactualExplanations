@@ -1,0 +1,2094 @@
+[
+  {
+    "case_id": 0,
+    "domain": "income_prediction",
+    "model_info": {
+      "name": "logistic_regression",
+      "accuracy": 0.8523902139420616,
+      "precision": 0.7413793103448276,
+      "recall": 0.5885372112917023,
+      "f1": 0.6561754887935145
+    },
+    "original": {
+      "age": 22,
+      "workclass": "Private",
+      "fnlwgt": 130724,
+      "education": "Some-college",
+      "education-num": 10,
+      "marital-status": "Never-married",
+      "occupation": "Sales",
+      "relationship": "Own-child",
+      "race": "Black",
+      "sex": "Male",
+      "capital-gain": 0,
+      "capital-loss": 0,
+      "hours-per-week": 25,
+      "native-country": "United-States"
+    },
+    "prediction": "<=50K",
+    "prediction_confidence": 0.9939056659845417,
+    "true_label": "<=50K",
+    "is_false_negative": false,
+    "counterfactuals": [
+      {
+        "cf_rank": 0,
+        "cf_confidence": 0.5150609581992691,
+        "features": {
+          "age": 22,
+          "workclass": "Federal-gov",
+          "fnlwgt": 130724,
+          "education": "Some-college",
+          "education-num": 10,
+          "marital-status": "Never-married",
+          "occupation": "Armed-Forces",
+          "relationship": "Own-child",
+          "race": "Black",
+          "sex": "Male",
+          "capital-gain": 4456,
+          "capital-loss": 3822,
+          "hours-per-week": 49,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Sales",
+            "to": "Armed-Forces"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 4456
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 3822
+          },
+          "hours-per-week": {
+            "from": 25,
+            "to": 49
+          }
+        }
+      },
+      {
+        "cf_rank": 1,
+        "cf_confidence": 0.6595627849582657,
+        "features": {
+          "age": 22,
+          "workclass": "Federal-gov",
+          "fnlwgt": 130724,
+          "education": "Some-college",
+          "education-num": 10,
+          "marital-status": "Never-married",
+          "occupation": "Exec-managerial",
+          "relationship": "Own-child",
+          "race": "Black",
+          "sex": "Male",
+          "capital-gain": 4456,
+          "capital-loss": 3822,
+          "hours-per-week": 49,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Sales",
+            "to": "Exec-managerial"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 4456
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 3822
+          },
+          "hours-per-week": {
+            "from": 25,
+            "to": 49
+          }
+        }
+      },
+      {
+        "cf_rank": 2,
+        "cf_confidence": 0.5955424303047079,
+        "features": {
+          "age": 22,
+          "workclass": "Federal-gov",
+          "fnlwgt": 130724,
+          "education": "Some-college",
+          "education-num": 10,
+          "marital-status": "Never-married",
+          "occupation": "Protective-serv",
+          "relationship": "Own-child",
+          "race": "Black",
+          "sex": "Male",
+          "capital-gain": 4456,
+          "capital-loss": 3822,
+          "hours-per-week": 49,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Sales",
+            "to": "Protective-serv"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 4456
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 3822
+          },
+          "hours-per-week": {
+            "from": 25,
+            "to": 49
+          }
+        }
+      },
+      {
+        "cf_rank": 3,
+        "cf_confidence": 0.5260038536763065,
+        "features": {
+          "age": 22,
+          "workclass": "Federal-gov",
+          "fnlwgt": 130724,
+          "education": "Some-college",
+          "education-num": 10,
+          "marital-status": "Never-married",
+          "occupation": "Prof-specialty",
+          "relationship": "Own-child",
+          "race": "Black",
+          "sex": "Male",
+          "capital-gain": 4456,
+          "capital-loss": 3822,
+          "hours-per-week": 49,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Sales",
+            "to": "Prof-specialty"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 4456
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 3822
+          },
+          "hours-per-week": {
+            "from": 25,
+            "to": 49
+          }
+        }
+      }
+    ],
+    "metrics": {
+      "n_counterfactuals": 4.0,
+      "n_unique_counterfactuals": 4.0,
+      "validity": 1.0,
+      "continuous_proximity": -3.01362,
+      "categorical_proximity": 0.75,
+      "sparsity": 0.642857,
+      "continuous_diversity": 0.0,
+      "categorical_diversity": 0.125,
+      "count_diversity": 0.071429
+    },
+    "ground_truth_issues": []
+  },
+  {
+    "case_id": 1,
+    "domain": "income_prediction",
+    "model_info": {
+      "name": "logistic_regression",
+      "accuracy": 0.8523902139420616,
+      "precision": 0.7413793103448276,
+      "recall": 0.5885372112917023,
+      "f1": 0.6561754887935145
+    },
+    "original": {
+      "age": 51,
+      "workclass": "Private",
+      "fnlwgt": 394690,
+      "education": "HS-grad",
+      "education-num": 9,
+      "marital-status": "Divorced",
+      "occupation": "Exec-managerial",
+      "relationship": "Not-in-family",
+      "race": "White",
+      "sex": "Female",
+      "capital-gain": 0,
+      "capital-loss": 0,
+      "hours-per-week": 40,
+      "native-country": "United-States"
+    },
+    "prediction": "<=50K",
+    "prediction_confidence": 0.9227347755316697,
+    "true_label": "<=50K",
+    "is_false_negative": false,
+    "counterfactuals": [
+      {
+        "cf_rank": 0,
+        "cf_confidence": 0.5504101729997521,
+        "features": {
+          "age": 51,
+          "workclass": "Without-pay",
+          "fnlwgt": 394690,
+          "education": "HS-grad",
+          "education-num": 9,
+          "marital-status": "Divorced",
+          "occupation": "Exec-managerial",
+          "relationship": "Not-in-family",
+          "race": "White",
+          "sex": "Female",
+          "capital-gain": 4957,
+          "capital-loss": 2212,
+          "hours-per-week": 33,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Without-pay"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 4957
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 2212
+          },
+          "hours-per-week": {
+            "from": 40,
+            "to": 33
+          }
+        }
+      },
+      {
+        "cf_rank": 1,
+        "cf_confidence": 0.6042557218084741,
+        "features": {
+          "age": 51,
+          "workclass": "Self-emp-not-inc",
+          "fnlwgt": 394690,
+          "education": "HS-grad",
+          "education-num": 9,
+          "marital-status": "Divorced",
+          "occupation": "Exec-managerial",
+          "relationship": "Not-in-family",
+          "race": "White",
+          "sex": "Female",
+          "capital-gain": 3842,
+          "capital-loss": 3021,
+          "hours-per-week": 47,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Self-emp-not-inc"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 3842
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 3021
+          },
+          "hours-per-week": {
+            "from": 40,
+            "to": 47
+          }
+        }
+      },
+      {
+        "cf_rank": 2,
+        "cf_confidence": 0.582543496414903,
+        "features": {
+          "age": 51,
+          "workclass": "Private",
+          "fnlwgt": 394690,
+          "education": "HS-grad",
+          "education-num": 9,
+          "marital-status": "Divorced",
+          "occupation": "Sales",
+          "relationship": "Not-in-family",
+          "race": "White",
+          "sex": "Female",
+          "capital-gain": 4231,
+          "capital-loss": 3428,
+          "hours-per-week": 33,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "occupation",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "occupation": {
+            "from": "Exec-managerial",
+            "to": "Sales"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 4231
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 3428
+          },
+          "hours-per-week": {
+            "from": 40,
+            "to": 33
+          }
+        }
+      },
+      {
+        "cf_rank": 3,
+        "cf_confidence": 0.5129389635672118,
+        "features": {
+          "age": 51,
+          "workclass": "Federal-gov",
+          "fnlwgt": 394690,
+          "education": "HS-grad",
+          "education-num": 9,
+          "marital-status": "Divorced",
+          "occupation": "Protective-serv",
+          "relationship": "Not-in-family",
+          "race": "White",
+          "sex": "Female",
+          "capital-gain": 0,
+          "capital-loss": 3636,
+          "hours-per-week": 33,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Exec-managerial",
+            "to": "Protective-serv"
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 3636
+          },
+          "hours-per-week": {
+            "from": 40,
+            "to": 33
+          }
+        }
+      }
+    ],
+    "metrics": {
+      "n_counterfactuals": 4.0,
+      "n_unique_counterfactuals": 4.0,
+      "validity": 1.0,
+      "continuous_proximity": -1.733131,
+      "categorical_proximity": 0.84375,
+      "sparsity": 0.714286,
+      "continuous_diversity": 0.768279,
+      "categorical_diversity": 0.229167,
+      "count_diversity": 0.309524
+    },
+    "ground_truth_issues": []
+  },
+  {
+    "case_id": 2,
+    "domain": "income_prediction",
+    "model_info": {
+      "name": "logistic_regression",
+      "accuracy": 0.8523902139420616,
+      "precision": 0.7413793103448276,
+      "recall": 0.5885372112917023,
+      "f1": 0.6561754887935145
+    },
+    "original": {
+      "age": 55,
+      "workclass": "Federal-gov",
+      "fnlwgt": 171870,
+      "education": "HS-grad",
+      "education-num": 9,
+      "marital-status": "Married-civ-spouse",
+      "occupation": "Adm-clerical",
+      "relationship": "Husband",
+      "race": "White",
+      "sex": "Male",
+      "capital-gain": 0,
+      "capital-loss": 0,
+      "hours-per-week": 46,
+      "native-country": "United-States"
+    },
+    "prediction": "<=50K",
+    "prediction_confidence": 0.5034715362938547,
+    "true_label": ">50K",
+    "is_false_negative": true,
+    "counterfactuals": [
+      {
+        "cf_rank": 0,
+        "cf_confidence": 0.5024490381003993,
+        "features": {
+          "age": 55,
+          "workclass": "Local-gov",
+          "fnlwgt": 171870,
+          "education": "HS-grad",
+          "education-num": 9,
+          "marital-status": "Married-civ-spouse",
+          "occupation": "Exec-managerial",
+          "relationship": "Husband",
+          "race": "White",
+          "sex": "Male",
+          "capital-gain": 0,
+          "capital-loss": 0,
+          "hours-per-week": 46,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Federal-gov",
+            "to": "Local-gov"
+          },
+          "occupation": {
+            "from": "Adm-clerical",
+            "to": "Exec-managerial"
+          }
+        }
+      },
+      {
+        "cf_rank": 1,
+        "cf_confidence": 0.5127034531211956,
+        "features": {
+          "age": 55,
+          "workclass": "Private",
+          "fnlwgt": 171870,
+          "education": "HS-grad",
+          "education-num": 9,
+          "marital-status": "Married-civ-spouse",
+          "occupation": "Exec-managerial",
+          "relationship": "Husband",
+          "race": "White",
+          "sex": "Male",
+          "capital-gain": 0,
+          "capital-loss": 0,
+          "hours-per-week": 46,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Federal-gov",
+            "to": "Private"
+          },
+          "occupation": {
+            "from": "Adm-clerical",
+            "to": "Exec-managerial"
+          }
+        }
+      },
+      {
+        "cf_rank": 2,
+        "cf_confidence": 0.5604997627246777,
+        "features": {
+          "age": 55,
+          "workclass": "Self-emp-inc",
+          "fnlwgt": 171870,
+          "education": "HS-grad",
+          "education-num": 9,
+          "marital-status": "Married-civ-spouse",
+          "occupation": "Exec-managerial",
+          "relationship": "Husband",
+          "race": "White",
+          "sex": "Male",
+          "capital-gain": 0,
+          "capital-loss": 0,
+          "hours-per-week": 46,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Federal-gov",
+            "to": "Self-emp-inc"
+          },
+          "occupation": {
+            "from": "Adm-clerical",
+            "to": "Exec-managerial"
+          }
+        }
+      },
+      {
+        "cf_rank": 3,
+        "cf_confidence": 0.6614730575605089,
+        "features": {
+          "age": 55,
+          "workclass": "Federal-gov",
+          "fnlwgt": 171870,
+          "education": "HS-grad",
+          "education-num": 9,
+          "marital-status": "Married-civ-spouse",
+          "occupation": "Exec-managerial",
+          "relationship": "Husband",
+          "race": "White",
+          "sex": "Male",
+          "capital-gain": 0,
+          "capital-loss": 0,
+          "hours-per-week": 45,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "occupation",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "occupation": {
+            "from": "Adm-clerical",
+            "to": "Exec-managerial"
+          },
+          "hours-per-week": {
+            "from": 46,
+            "to": 45
+          }
+        }
+      }
+    ],
+    "metrics": {
+      "n_counterfactuals": 4.0,
+      "n_unique_counterfactuals": 4.0,
+      "validity": 1.0,
+      "continuous_proximity": -0.013889,
+      "categorical_proximity": 0.78125,
+      "sparsity": 0.857143,
+      "continuous_diversity": 0.027778,
+      "categorical_diversity": 0.125,
+      "count_diversity": 0.107143
+    },
+    "ground_truth_issues": []
+  },
+  {
+    "case_id": 3,
+    "domain": "income_prediction",
+    "model_info": {
+      "name": "logistic_regression",
+      "accuracy": 0.8523902139420616,
+      "precision": 0.7413793103448276,
+      "recall": 0.5885372112917023,
+      "f1": 0.6561754887935145
+    },
+    "original": {
+      "age": 29,
+      "workclass": "Private",
+      "fnlwgt": 161478,
+      "education": "Bachelors",
+      "education-num": 13,
+      "marital-status": "Never-married",
+      "occupation": "Adm-clerical",
+      "relationship": "Not-in-family",
+      "race": "Asian-Pac-Islander",
+      "sex": "Female",
+      "capital-gain": 0,
+      "capital-loss": 0,
+      "hours-per-week": 40,
+      "native-country": "Japan"
+    },
+    "prediction": "<=50K",
+    "prediction_confidence": 0.9622525038220588,
+    "true_label": "<=50K",
+    "is_false_negative": false,
+    "counterfactuals": [
+      {
+        "cf_rank": 0,
+        "cf_confidence": 0.6359500629518791,
+        "features": {
+          "age": 29,
+          "workclass": "Local-gov",
+          "fnlwgt": 161478,
+          "education": "Bachelors",
+          "education-num": 13,
+          "marital-status": "Never-married",
+          "occupation": "Exec-managerial",
+          "relationship": "Not-in-family",
+          "race": "Asian-Pac-Islander",
+          "sex": "Female",
+          "capital-gain": 4786,
+          "capital-loss": 2524,
+          "hours-per-week": 40,
+          "native-country": "Japan"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "capital-gain",
+          "capital-loss"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Local-gov"
+          },
+          "occupation": {
+            "from": "Adm-clerical",
+            "to": "Exec-managerial"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 4786
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 2524
+          }
+        }
+      },
+      {
+        "cf_rank": 1,
+        "cf_confidence": 0.5306530913682808,
+        "features": {
+          "age": 29,
+          "workclass": "Federal-gov",
+          "fnlwgt": 161478,
+          "education": "Bachelors",
+          "education-num": 13,
+          "marital-status": "Never-married",
+          "occupation": "Transport-moving",
+          "relationship": "Not-in-family",
+          "race": "Asian-Pac-Islander",
+          "sex": "Female",
+          "capital-gain": 3663,
+          "capital-loss": 2576,
+          "hours-per-week": 40,
+          "native-country": "Japan"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "capital-gain",
+          "capital-loss"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Adm-clerical",
+            "to": "Transport-moving"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 3663
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 2576
+          }
+        }
+      },
+      {
+        "cf_rank": 2,
+        "cf_confidence": 0.7180437261195027,
+        "features": {
+          "age": 29,
+          "workclass": "Federal-gov",
+          "fnlwgt": 161478,
+          "education": "Bachelors",
+          "education-num": 13,
+          "marital-status": "Never-married",
+          "occupation": "Exec-managerial",
+          "relationship": "Not-in-family",
+          "race": "Asian-Pac-Islander",
+          "sex": "Female",
+          "capital-gain": 3663,
+          "capital-loss": 2576,
+          "hours-per-week": 40,
+          "native-country": "Japan"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "capital-gain",
+          "capital-loss"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Adm-clerical",
+            "to": "Exec-managerial"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 3663
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 2576
+          }
+        }
+      },
+      {
+        "cf_rank": 3,
+        "cf_confidence": 0.6031500900802423,
+        "features": {
+          "age": 29,
+          "workclass": "Federal-gov",
+          "fnlwgt": 161478,
+          "education": "Bachelors",
+          "education-num": 13,
+          "marital-status": "Never-married",
+          "occupation": "Sales",
+          "relationship": "Not-in-family",
+          "race": "Asian-Pac-Islander",
+          "sex": "Female",
+          "capital-gain": 3663,
+          "capital-loss": 2576,
+          "hours-per-week": 40,
+          "native-country": "Japan"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "capital-gain",
+          "capital-loss"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Adm-clerical",
+            "to": "Sales"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 3663
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 2576
+          }
+        }
+      }
+    ],
+    "metrics": {
+      "n_counterfactuals": 4.0,
+      "n_unique_counterfactuals": 4.0,
+      "validity": 1.0,
+      "continuous_proximity": -1.148158,
+      "categorical_proximity": 0.75,
+      "sparsity": 0.714286,
+      "continuous_diversity": 0.023311,
+      "categorical_diversity": 0.166667,
+      "count_diversity": 0.166667
+    },
+    "ground_truth_issues": []
+  },
+  {
+    "case_id": 4,
+    "domain": "income_prediction",
+    "model_info": {
+      "name": "logistic_regression",
+      "accuracy": 0.8523902139420616,
+      "precision": 0.7413793103448276,
+      "recall": 0.5885372112917023,
+      "f1": 0.6561754887935145
+    },
+    "original": {
+      "age": 45,
+      "workclass": "Private",
+      "fnlwgt": 184581,
+      "education": "HS-grad",
+      "education-num": 9,
+      "marital-status": "Married-civ-spouse",
+      "occupation": "Machine-op-inspct",
+      "relationship": "Husband",
+      "race": "White",
+      "sex": "Male",
+      "capital-gain": 0,
+      "capital-loss": 0,
+      "hours-per-week": 40,
+      "native-country": "United-States"
+    },
+    "prediction": "<=50K",
+    "prediction_confidence": 0.7847387830098084,
+    "true_label": "<=50K",
+    "is_false_negative": false,
+    "counterfactuals": [
+      {
+        "cf_rank": 0,
+        "cf_confidence": 0.5774928685228963,
+        "features": {
+          "age": 45,
+          "workclass": "Federal-gov",
+          "fnlwgt": 184581,
+          "education": "HS-grad",
+          "education-num": 9,
+          "marital-status": "Married-civ-spouse",
+          "occupation": "Exec-managerial",
+          "relationship": "Husband",
+          "race": "White",
+          "sex": "Male",
+          "capital-gain": 0,
+          "capital-loss": 0,
+          "hours-per-week": 40,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Machine-op-inspct",
+            "to": "Exec-managerial"
+          }
+        }
+      },
+      {
+        "cf_rank": 1,
+        "cf_confidence": 0.5627159934718916,
+        "features": {
+          "age": 45,
+          "workclass": "Federal-gov",
+          "fnlwgt": 184581,
+          "education": "HS-grad",
+          "education-num": 9,
+          "marital-status": "Married-civ-spouse",
+          "occupation": "Exec-managerial",
+          "relationship": "Husband",
+          "race": "White",
+          "sex": "Male",
+          "capital-gain": 0,
+          "capital-loss": 0,
+          "hours-per-week": 38,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Machine-op-inspct",
+            "to": "Exec-managerial"
+          },
+          "hours-per-week": {
+            "from": 40,
+            "to": 38
+          }
+        }
+      },
+      {
+        "cf_rank": 2,
+        "cf_confidence": 0.599392902249046,
+        "features": {
+          "age": 45,
+          "workclass": "Federal-gov",
+          "fnlwgt": 184581,
+          "education": "HS-grad",
+          "education-num": 9,
+          "marital-status": "Married-civ-spouse",
+          "occupation": "Exec-managerial",
+          "relationship": "Husband",
+          "race": "White",
+          "sex": "Male",
+          "capital-gain": 0,
+          "capital-loss": 0,
+          "hours-per-week": 43,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Machine-op-inspct",
+            "to": "Exec-managerial"
+          },
+          "hours-per-week": {
+            "from": 40,
+            "to": 43
+          }
+        }
+      },
+      {
+        "cf_rank": 3,
+        "cf_confidence": 0.5320847333845008,
+        "features": {
+          "age": 45,
+          "workclass": "Federal-gov",
+          "fnlwgt": 184581,
+          "education": "HS-grad",
+          "education-num": 9,
+          "marital-status": "Married-civ-spouse",
+          "occupation": "Protective-serv",
+          "relationship": "Husband",
+          "race": "White",
+          "sex": "Male",
+          "capital-gain": 0,
+          "capital-loss": 0,
+          "hours-per-week": 43,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Machine-op-inspct",
+            "to": "Protective-serv"
+          },
+          "hours-per-week": {
+            "from": 40,
+            "to": 43
+          }
+        }
+      }
+    ],
+    "metrics": {
+      "n_counterfactuals": 4.0,
+      "n_unique_counterfactuals": 4.0,
+      "validity": 1.0,
+      "continuous_proximity": -0.111111,
+      "categorical_proximity": 0.75,
+      "sparsity": 0.803571,
+      "continuous_diversity": 0.166667,
+      "categorical_diversity": 0.0625,
+      "count_diversity": 0.095238
+    },
+    "ground_truth_issues": []
+  },
+  {
+    "case_id": 5,
+    "domain": "income_prediction",
+    "model_info": {
+      "name": "logistic_regression",
+      "accuracy": 0.8523902139420616,
+      "precision": 0.7413793103448276,
+      "recall": 0.5885372112917023,
+      "f1": 0.6561754887935145
+    },
+    "original": {
+      "age": 19,
+      "workclass": "Private",
+      "fnlwgt": 129059,
+      "education": "Some-college",
+      "education-num": 10,
+      "marital-status": "Never-married",
+      "occupation": "Sales",
+      "relationship": "Own-child",
+      "race": "Black",
+      "sex": "Male",
+      "capital-gain": 0,
+      "capital-loss": 0,
+      "hours-per-week": 30,
+      "native-country": "United-States"
+    },
+    "prediction": "<=50K",
+    "prediction_confidence": 0.9933707796088111,
+    "true_label": "<=50K",
+    "is_false_negative": false,
+    "counterfactuals": [
+      {
+        "cf_rank": 0,
+        "cf_confidence": 0.5521197204586533,
+        "features": {
+          "age": 19,
+          "workclass": "Federal-gov",
+          "fnlwgt": 129059,
+          "education": "Some-college",
+          "education-num": 10,
+          "marital-status": "Never-married",
+          "occupation": "Exec-managerial",
+          "relationship": "Own-child",
+          "race": "Black",
+          "sex": "Male",
+          "capital-gain": 3271,
+          "capital-loss": 3838,
+          "hours-per-week": 48,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Sales",
+            "to": "Exec-managerial"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 3271
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 3838
+          },
+          "hours-per-week": {
+            "from": 30,
+            "to": 48
+          }
+        }
+      },
+      {
+        "cf_rank": 1,
+        "cf_confidence": 0.5208415384667778,
+        "features": {
+          "age": 19,
+          "workclass": "Private",
+          "fnlwgt": 129059,
+          "education": "Some-college",
+          "education-num": 10,
+          "marital-status": "Never-married",
+          "occupation": "Exec-managerial",
+          "relationship": "Own-child",
+          "race": "Black",
+          "sex": "Male",
+          "capital-gain": 4680,
+          "capital-loss": 4158,
+          "hours-per-week": 44,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "occupation",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "occupation": {
+            "from": "Sales",
+            "to": "Exec-managerial"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 4680
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 4158
+          },
+          "hours-per-week": {
+            "from": 30,
+            "to": 44
+          }
+        }
+      },
+      {
+        "cf_rank": 2,
+        "cf_confidence": 0.5260433812677612,
+        "features": {
+          "age": 19,
+          "workclass": "Federal-gov",
+          "fnlwgt": 129059,
+          "education": "Some-college",
+          "education-num": 10,
+          "marital-status": "Never-married",
+          "occupation": "Exec-managerial",
+          "relationship": "Own-child",
+          "race": "Black",
+          "sex": "Male",
+          "capital-gain": 3865,
+          "capital-loss": 4367,
+          "hours-per-week": 27,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Sales",
+            "to": "Exec-managerial"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 3865
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 4367
+          },
+          "hours-per-week": {
+            "from": 30,
+            "to": 27
+          }
+        }
+      },
+      {
+        "cf_rank": 3,
+        "cf_confidence": 0.506745036355473,
+        "features": {
+          "age": 19,
+          "workclass": "Private",
+          "fnlwgt": 129059,
+          "education": "Some-college",
+          "education-num": 10,
+          "marital-status": "Never-married",
+          "occupation": "Exec-managerial",
+          "relationship": "Own-child",
+          "race": "Black",
+          "sex": "Male",
+          "capital-gain": 4670,
+          "capital-loss": 4539,
+          "hours-per-week": 34,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "occupation",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "occupation": {
+            "from": "Sales",
+            "to": "Exec-managerial"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 4670
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 4539
+          },
+          "hours-per-week": {
+            "from": 30,
+            "to": 34
+          }
+        }
+      }
+    ],
+    "metrics": {
+      "n_counterfactuals": 4.0,
+      "n_unique_counterfactuals": 4.0,
+      "validity": 1.0,
+      "continuous_proximity": -2.381344,
+      "categorical_proximity": 0.8125,
+      "sparsity": 0.678571,
+      "continuous_diversity": 0.854042,
+      "categorical_diversity": 0.083333,
+      "count_diversity": 0.261905
+    },
+    "ground_truth_issues": []
+  },
+  {
+    "case_id": 6,
+    "domain": "income_prediction",
+    "model_info": {
+      "name": "logistic_regression",
+      "accuracy": 0.8523902139420616,
+      "precision": 0.7413793103448276,
+      "recall": 0.5885372112917023,
+      "f1": 0.6561754887935145
+    },
+    "original": {
+      "age": 50,
+      "workclass": "Private",
+      "fnlwgt": 22418,
+      "education": "9th",
+      "education-num": 5,
+      "marital-status": "Divorced",
+      "occupation": "Transport-moving",
+      "relationship": "Not-in-family",
+      "race": "White",
+      "sex": "Male",
+      "capital-gain": 0,
+      "capital-loss": 0,
+      "hours-per-week": 50,
+      "native-country": "United-States"
+    },
+    "prediction": "<=50K",
+    "prediction_confidence": 0.972795757404051,
+    "true_label": "<=50K",
+    "is_false_negative": false,
+    "counterfactuals": [
+      {
+        "cf_rank": 0,
+        "cf_confidence": 0.5262341044995611,
+        "features": {
+          "age": 50,
+          "workclass": "Self-emp-not-inc",
+          "fnlwgt": 22418,
+          "education": "9th",
+          "education-num": 5,
+          "marital-status": "Divorced",
+          "occupation": "Protective-serv",
+          "relationship": "Not-in-family",
+          "race": "White",
+          "sex": "Male",
+          "capital-gain": 4080,
+          "capital-loss": 3926,
+          "hours-per-week": 43,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Self-emp-not-inc"
+          },
+          "occupation": {
+            "from": "Transport-moving",
+            "to": "Protective-serv"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 4080
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 3926
+          },
+          "hours-per-week": {
+            "from": 50,
+            "to": 43
+          }
+        }
+      },
+      {
+        "cf_rank": 1,
+        "cf_confidence": 0.6707903368141794,
+        "features": {
+          "age": 50,
+          "workclass": "Without-pay",
+          "fnlwgt": 22418,
+          "education": "9th",
+          "education-num": 5,
+          "marital-status": "Divorced",
+          "occupation": "Prof-specialty",
+          "relationship": "Not-in-family",
+          "race": "White",
+          "sex": "Male",
+          "capital-gain": 4972,
+          "capital-loss": 4002,
+          "hours-per-week": 49,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Without-pay"
+          },
+          "occupation": {
+            "from": "Transport-moving",
+            "to": "Prof-specialty"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 4972
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 4002
+          },
+          "hours-per-week": {
+            "from": 50,
+            "to": 49
+          }
+        }
+      },
+      {
+        "cf_rank": 2,
+        "cf_confidence": 0.663432882533096,
+        "features": {
+          "age": 50,
+          "workclass": "Federal-gov",
+          "fnlwgt": 22418,
+          "education": "9th",
+          "education-num": 5,
+          "marital-status": "Divorced",
+          "occupation": "Adm-clerical",
+          "relationship": "Not-in-family",
+          "race": "White",
+          "sex": "Male",
+          "capital-gain": 3452,
+          "capital-loss": 4072,
+          "hours-per-week": 43,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Transport-moving",
+            "to": "Adm-clerical"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 3452
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 4072
+          },
+          "hours-per-week": {
+            "from": 50,
+            "to": 43
+          }
+        }
+      },
+      {
+        "cf_rank": 3,
+        "cf_confidence": 0.5244864013650492,
+        "features": {
+          "age": 50,
+          "workclass": "Federal-gov",
+          "fnlwgt": 22418,
+          "education": "9th",
+          "education-num": 5,
+          "marital-status": "Divorced",
+          "occupation": "Armed-Forces",
+          "relationship": "Not-in-family",
+          "race": "White",
+          "sex": "Male",
+          "capital-gain": 3452,
+          "capital-loss": 4072,
+          "hours-per-week": 20,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Transport-moving",
+            "to": "Armed-Forces"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 3452
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 4072
+          },
+          "hours-per-week": {
+            "from": 50,
+            "to": 20
+          }
+        }
+      }
+    ],
+    "metrics": {
+      "n_counterfactuals": 4.0,
+      "n_unique_counterfactuals": 4.0,
+      "validity": 1.0,
+      "continuous_proximity": -2.3759,
+      "categorical_proximity": 0.75,
+      "sparsity": 0.642857,
+      "continuous_diversity": 0.859909,
+      "categorical_diversity": 0.229167,
+      "count_diversity": 0.309524
+    },
+    "ground_truth_issues": []
+  },
+  {
+    "case_id": 7,
+    "domain": "income_prediction",
+    "model_info": {
+      "name": "logistic_regression",
+      "accuracy": 0.8523902139420616,
+      "precision": 0.7413793103448276,
+      "recall": 0.5885372112917023,
+      "f1": 0.6561754887935145
+    },
+    "original": {
+      "age": 20,
+      "workclass": "Private",
+      "fnlwgt": 34616,
+      "education": "HS-grad",
+      "education-num": 9,
+      "marital-status": "Never-married",
+      "occupation": "Sales",
+      "relationship": "Own-child",
+      "race": "White",
+      "sex": "Female",
+      "capital-gain": 0,
+      "capital-loss": 0,
+      "hours-per-week": 40,
+      "native-country": "United-States"
+    },
+    "prediction": "<=50K",
+    "prediction_confidence": 0.995961145441762,
+    "true_label": "<=50K",
+    "is_false_negative": false,
+    "counterfactuals": [
+      {
+        "cf_rank": 0,
+        "cf_confidence": 0.5115991589378678,
+        "features": {
+          "age": 20,
+          "workclass": "Federal-gov",
+          "fnlwgt": 34616,
+          "education": "HS-grad",
+          "education-num": 9,
+          "marital-status": "Never-married",
+          "occupation": "Exec-managerial",
+          "relationship": "Own-child",
+          "race": "White",
+          "sex": "Female",
+          "capital-gain": 4264,
+          "capital-loss": 4437,
+          "hours-per-week": 46,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Sales",
+            "to": "Exec-managerial"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 4264
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 4437
+          },
+          "hours-per-week": {
+            "from": 40,
+            "to": 46
+          }
+        }
+      },
+      {
+        "cf_rank": 1,
+        "cf_confidence": 0.5308980588729851,
+        "features": {
+          "age": 20,
+          "workclass": "Federal-gov",
+          "fnlwgt": 34616,
+          "education": "HS-grad",
+          "education-num": 9,
+          "marital-status": "Never-married",
+          "occupation": "Exec-managerial",
+          "relationship": "Own-child",
+          "race": "White",
+          "sex": "Female",
+          "capital-gain": 4510,
+          "capital-loss": 4439,
+          "hours-per-week": 46,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Sales",
+            "to": "Exec-managerial"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 4510
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 4439
+          },
+          "hours-per-week": {
+            "from": 40,
+            "to": 46
+          }
+        }
+      },
+      {
+        "cf_rank": 2,
+        "cf_confidence": 0.5341595457170436,
+        "features": {
+          "age": 20,
+          "workclass": "Federal-gov",
+          "fnlwgt": 34616,
+          "education": "HS-grad",
+          "education-num": 9,
+          "marital-status": "Never-married",
+          "occupation": "Exec-managerial",
+          "relationship": "Own-child",
+          "race": "White",
+          "sex": "Female",
+          "capital-gain": 4264,
+          "capital-loss": 4437,
+          "hours-per-week": 49,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Sales",
+            "to": "Exec-managerial"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 4264
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 4437
+          },
+          "hours-per-week": {
+            "from": 40,
+            "to": 49
+          }
+        }
+      },
+      {
+        "cf_rank": 3,
+        "cf_confidence": 0.5344836627997376,
+        "features": {
+          "age": 20,
+          "workclass": "Federal-gov",
+          "fnlwgt": 34616,
+          "education": "HS-grad",
+          "education-num": 9,
+          "marital-status": "Never-married",
+          "occupation": "Exec-managerial",
+          "relationship": "Own-child",
+          "race": "White",
+          "sex": "Female",
+          "capital-gain": 4264,
+          "capital-loss": 4439,
+          "hours-per-week": 49,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Sales",
+            "to": "Exec-managerial"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 4264
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 4439
+          },
+          "hours-per-week": {
+            "from": 40,
+            "to": 49
+          }
+        }
+      }
+    ],
+    "metrics": {
+      "n_counterfactuals": 4.0,
+      "n_unique_counterfactuals": 4.0,
+      "validity": 1.0,
+      "continuous_proximity": -2.348788,
+      "categorical_proximity": 0.75,
+      "sparsity": 0.642857,
+      "continuous_diversity": 0.114413,
+      "categorical_diversity": 0.0,
+      "count_diversity": 0.130952
+    },
+    "ground_truth_issues": []
+  },
+  {
+    "case_id": 8,
+    "domain": "income_prediction",
+    "model_info": {
+      "name": "logistic_regression",
+      "accuracy": 0.8523902139420616,
+      "precision": 0.7413793103448276,
+      "recall": 0.5885372112917023,
+      "f1": 0.6561754887935145
+    },
+    "original": {
+      "age": 28,
+      "workclass": "Private",
+      "fnlwgt": 183627,
+      "education": "Some-college",
+      "education-num": 10,
+      "marital-status": "Married-civ-spouse",
+      "occupation": "Sales",
+      "relationship": "Husband",
+      "race": "White",
+      "sex": "Male",
+      "capital-gain": 0,
+      "capital-loss": 0,
+      "hours-per-week": 50,
+      "native-country": "United-States"
+    },
+    "prediction": "<=50K",
+    "prediction_confidence": 0.6379407246574322,
+    "true_label": "<=50K",
+    "is_false_negative": false,
+    "counterfactuals": [
+      {
+        "cf_rank": 0,
+        "cf_confidence": 0.6454098065290877,
+        "features": {
+          "age": 28,
+          "workclass": "Federal-gov",
+          "fnlwgt": 183627,
+          "education": "Some-college",
+          "education-num": 10,
+          "marital-status": "Married-civ-spouse",
+          "occupation": "Exec-managerial",
+          "relationship": "Husband",
+          "race": "White",
+          "sex": "Male",
+          "capital-gain": 0,
+          "capital-loss": 0,
+          "hours-per-week": 50,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Sales",
+            "to": "Exec-managerial"
+          }
+        }
+      },
+      {
+        "cf_rank": 1,
+        "cf_confidence": 0.535465075325817,
+        "features": {
+          "age": 28,
+          "workclass": "Self-emp-inc",
+          "fnlwgt": 183627,
+          "education": "Some-college",
+          "education-num": 10,
+          "marital-status": "Married-civ-spouse",
+          "occupation": "Exec-managerial",
+          "relationship": "Husband",
+          "race": "White",
+          "sex": "Male",
+          "capital-gain": 0,
+          "capital-loss": 0,
+          "hours-per-week": 50,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Self-emp-inc"
+          },
+          "occupation": {
+            "from": "Sales",
+            "to": "Exec-managerial"
+          }
+        }
+      },
+      {
+        "cf_rank": 2,
+        "cf_confidence": 0.5104198994406611,
+        "features": {
+          "age": 28,
+          "workclass": "Federal-gov",
+          "fnlwgt": 183627,
+          "education": "Some-college",
+          "education-num": 10,
+          "marital-status": "Married-civ-spouse",
+          "occupation": "Prof-specialty",
+          "relationship": "Husband",
+          "race": "White",
+          "sex": "Male",
+          "capital-gain": 0,
+          "capital-loss": 0,
+          "hours-per-week": 50,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Sales",
+            "to": "Prof-specialty"
+          }
+        }
+      },
+      {
+        "cf_rank": 3,
+        "cf_confidence": 0.5839171802719354,
+        "features": {
+          "age": 28,
+          "workclass": "Federal-gov",
+          "fnlwgt": 183627,
+          "education": "Some-college",
+          "education-num": 10,
+          "marital-status": "Married-civ-spouse",
+          "occupation": "Tech-support",
+          "relationship": "Husband",
+          "race": "White",
+          "sex": "Male",
+          "capital-gain": 0,
+          "capital-loss": 0,
+          "hours-per-week": 50,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Sales",
+            "to": "Tech-support"
+          }
+        }
+      }
+    ],
+    "metrics": {
+      "n_counterfactuals": 4.0,
+      "n_unique_counterfactuals": 4.0,
+      "validity": 1.0,
+      "continuous_proximity": 0.0,
+      "categorical_proximity": 0.75,
+      "sparsity": 0.857143,
+      "continuous_diversity": 0.0,
+      "categorical_diversity": 0.166667,
+      "count_diversity": 0.095238
+    },
+    "ground_truth_issues": []
+  },
+  {
+    "case_id": 9,
+    "domain": "income_prediction",
+    "model_info": {
+      "name": "logistic_regression",
+      "accuracy": 0.8523902139420616,
+      "precision": 0.7413793103448276,
+      "recall": 0.5885372112917023,
+      "f1": 0.6561754887935145
+    },
+    "original": {
+      "age": 42,
+      "workclass": "Private",
+      "fnlwgt": 155106,
+      "education": "Some-college",
+      "education-num": 10,
+      "marital-status": "Never-married",
+      "occupation": "Machine-op-inspct",
+      "relationship": "Not-in-family",
+      "race": "White",
+      "sex": "Male",
+      "capital-gain": 0,
+      "capital-loss": 0,
+      "hours-per-week": 45,
+      "native-country": "United-States"
+    },
+    "prediction": "<=50K",
+    "prediction_confidence": 0.9569954387569622,
+    "true_label": "<=50K",
+    "is_false_negative": false,
+    "counterfactuals": [
+      {
+        "cf_rank": 0,
+        "cf_confidence": 0.5514850181922846,
+        "features": {
+          "age": 42,
+          "workclass": "Private",
+          "fnlwgt": 155106,
+          "education": "Some-college",
+          "education-num": 10,
+          "marital-status": "Never-married",
+          "occupation": "Exec-managerial",
+          "relationship": "Not-in-family",
+          "race": "White",
+          "sex": "Male",
+          "capital-gain": 3942,
+          "capital-loss": 1602,
+          "hours-per-week": 48,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "occupation",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "occupation": {
+            "from": "Machine-op-inspct",
+            "to": "Exec-managerial"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 3942
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 1602
+          },
+          "hours-per-week": {
+            "from": 45,
+            "to": 48
+          }
+        }
+      },
+      {
+        "cf_rank": 1,
+        "cf_confidence": 0.5354308838137629,
+        "features": {
+          "age": 42,
+          "workclass": "Federal-gov",
+          "fnlwgt": 155106,
+          "education": "Some-college",
+          "education-num": 10,
+          "marital-status": "Never-married",
+          "occupation": "Adm-clerical",
+          "relationship": "Not-in-family",
+          "race": "White",
+          "sex": "Male",
+          "capital-gain": 3942,
+          "capital-loss": 1602,
+          "hours-per-week": 48,
+          "native-country": "United-States"
+        },
+        "features_changed": [
+          "workclass",
+          "occupation",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week"
+        ],
+        "changes_summary": {
+          "workclass": {
+            "from": "Private",
+            "to": "Federal-gov"
+          },
+          "occupation": {
+            "from": "Machine-op-inspct",
+            "to": "Adm-clerical"
+          },
+          "capital-gain": {
+            "from": 0,
+            "to": 3942
+          },
+          "capital-loss": {
+            "from": 0,
+            "to": 1602
+          },
+          "hours-per-week": {
+            "from": 45,
+            "to": 48
+          }
+        }
+      }
+    ],
+    "metrics": {
+      "n_counterfactuals": 2.0,
+      "n_unique_counterfactuals": 2.0,
+      "validity": 1.0,
+      "continuous_proximity": -0.917354,
+      "categorical_proximity": 0.8125,
+      "sparsity": 0.678571,
+      "continuous_diversity": 0.0,
+      "categorical_diversity": 0.25,
+      "count_diversity": 0.142857
+    },
+    "ground_truth_issues": []
+  }
+]

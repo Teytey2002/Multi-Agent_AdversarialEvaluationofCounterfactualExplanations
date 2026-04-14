@@ -1,7 +1,7 @@
 # Pipeline Scripts — Per-Script Documentation
 
 > Quick reference for every script in `src/`.
-> Run order: **data_loader → preprocessing → models → train → predict → generate_cf → cf_metrics**
+> Run order: **data_loader → preprocessing → models → train → predict → generate_cf → cf_metrics → case_builder**
 > (utils is a shared helper module, not run directly.)
 
 All scripts must be executed from the **repo root** with `PYTHONPATH=src`:
@@ -261,3 +261,79 @@ Protected / immutable features (age, race, sex, native-country, education, marit
 
 ### Inputs / Outputs
 Not run directly — imported by `train.py`.
+
+---
+
+## 9. `case_builder.py`
+
+**Purpose** — Bridge layer that converts the ML pipeline's CSV outputs into structured JSON cases consumable by the AutoGen multi-agent debate system.
+
+### Workflow
+1. Reads four pipeline artifacts:
+   - `results/unfavorable_samples.csv` — the 10 sampled individuals.
+   - `results/counterfactuals.csv` — originals + counterfactual rows (row_type / cf_rank).
+   - `results/cf_metrics.csv` — per-instance DiCE quality metrics.
+   - `results/logistic_regression_metrics.json` — model evaluation metrics.
+2. For each sample, locates its CFs via `original_index`.
+3. Computes `changes_summary` per CF: `{feature: {from: ..., to: ...}}` for every changed feature.
+4. Assembles a case dict with:
+   - Person profile (`original`), model prediction + confidence, true label, false-negative flag.
+   - `counterfactuals` array (one entry per CF, each with features, features_changed, changes_summary, cf_confidence).
+   - `metrics` block (validity, proximity, sparsity, diversity).
+   - `model_info` (name, accuracy, precision, recall, F1).
+   - `ground_truth_issues` (empty — placeholder for Ivan's issue taxonomy).
+5. Writes all cases to a single JSON file.
+
+### Key parameters
+| Parameter | Value | Notes |
+|-----------|-------|-------|
+| `--out` | `results/cases.json` | Output path (default) |
+| `--pretty` | flag | Indent JSON for readability |
+
+### CLI
+```bash
+$env:PYTHONPATH="src"; python src/case_builder.py --pretty
+```
+
+### Inputs / Outputs
+| | Description |
+|---|---|
+| **Input** | `results/unfavorable_samples.csv`, `results/counterfactuals.csv`, `results/cf_metrics.csv`, `results/logistic_regression_metrics.json` |
+| **Output** | `results/cases.json` — array of case dicts (one per sampled individual) |
+
+### Output schema (per case)
+```json
+{
+  "case_id": 0,
+  "domain": "income_prediction",
+  "model_info": { "name": "...", "accuracy": 0.85, ... },
+  "original": { "age": 22, "workclass": "Private", ... },
+  "prediction": "<=50K",
+  "prediction_confidence": 0.994,
+  "true_label": "<=50K",
+  "is_false_negative": false,
+  "counterfactuals": [
+    {
+      "cf_rank": 0,
+      "cf_confidence": 0.515,
+      "features": { ... },
+      "features_changed": ["workclass", "occupation", ...],
+      "changes_summary": { "workclass": {"from": "Private", "to": "Federal-gov"}, ... }
+    }
+  ],
+  "metrics": { "validity": 1.0, "continuous_proximity": -3.01, ... },
+  "ground_truth_issues": []
+}
+```
+
+### Differences from AutoGen PoC mock_data format
+| PoC (mock_data.py) | case_builder.py | Notes |
+|--------------------|-----------------|-------|
+| `model_type` (string) | `model_info` (dict) | Includes real accuracy/precision/recall/F1 |
+| `counterfactual` (single) | `counterfactuals` (array) | Multiple CFs per case with ranking |
+| `features_changed` (top-level) | Per-CF | Each CF has its own changed features |
+| — | `prediction_confidence` | Model P(class) for the original |
+| — | `cf_confidence` | Model P(class 1) per CF |
+| — | `true_label` / `is_false_negative` | Ground-truth info from dataset |
+| — | `changes_summary` | Structured from/to diffs |
+| — | `metrics` | Real DiCE quality metrics |
