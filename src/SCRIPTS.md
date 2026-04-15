@@ -240,26 +240,49 @@ Protected / immutable features (age, race, sex, native-country, education, marit
 
 ## 7. `cf_metrics.py`
 
-**Purpose** — Evaluate counterfactual quality using DiCE-paper metrics (MAD normalization).
+**Purpose** — Evaluate counterfactual quality using DiCE-paper metrics, particularly focusing on distances adjusted by MAD (Median Absolute Deviation).
+
+### 💡 Beginner's Guide to "MAD Normalization"
+
+**What is it?** MAD (Median Absolute Deviation) measures how spread out a feature's values are. It is similar to standard deviation, but it uses medians instead of averages, making it highly robust against extreme outliers (which are common in financial data like `capital-gain`).
+**Why do we need it?** To measure if a counterfactual is "close" to the original person's profile, we have to calculate the distance between their feature values. But changing `age` by +10 years is vastly different from changing `capital-gain` by +$10. By dividing every raw change by that feature's MAD (i.e. "normalizing" it), we put all numerical features onto the exact same scale. A change of "1.0 MAD" represents a similar magnitude of shift regardless of the underlying unit.
+
+**Mockup Numerical Example:**
+
+Imagine we have 5 people with the following `age` values: `[30, 32, 35, 40, 50]`.
+* **Step 1 (Find Median):** The median age is **35**.
+* **Step 2 (Absolute Differences):** How far is each person's age from 35? `[5, 3, 0, 5, 15]`.
+* **Step 3 (Median of Differences):** The median of those differences `[0, 3, 5, 5, 15]` is **5**.
+So, the **MAD for Age is 5**.
+
+Now, let's compare calculating distances:
+* If a counterfactual changes a person's `age` from 35 to 45, the raw change is **10 years**.
+  * *MAD-Normalized distance* = 10 changes ÷ MAD of 5 = **2.0 MADs**.
+* Assume `capital-gain` has a **MAD of $1,000**. If a counterfactual changes it by **$2,000**.
+  * *MAD-Normalized distance* = 2000 changes ÷ MAD of 1000 = **2.0 MADs**.
+
+*Meaning:* Even though "10 years" and "$2,000" are completely different units, the normalization gives them both a distance of **2.0**. This proves to the evaluator agents that mathematically, both changes represent an equally "drastic" shift relative to how the data naturally varies in the real-world Adult Income Dataset!
 
 ### Workflow
-1. Loads the full Adult dataset to compute feature types and MAD (Median Absolute Deviation) values.
+
+1. Loads the full Adult dataset to compute feature types and MAD values for all numerical columns.
 2. Reads `results/counterfactuals.csv`.
 3. Groups rows by `original_index`, separates originals from counterfactuals.
 4. For each instance, computes:
    - **Validity** — fraction of unique CFs that achieved the desired class.
-   - **Continuous proximity** — average MAD-normalized distance (negative = closer is better).
+   - **Continuous proximity** — average MAD-normalized distance (negative = closer is better; adjusting by MAD ensures `age` and `capital-gain` are compared fairly).
    - **Categorical proximity** — average fraction of unchanged categorical features.
-   - **Sparsity** — `1 − (changed_features / total_features)`. Higher = sparser.
+   - **Sparsity** — `1 − (changed_features / total_features)`. Higher = sparser (fewer changes).
    - **Continuous diversity** — pairwise MAD-normalized distance between CFs.
    - **Categorical diversity** — pairwise fraction of differing categorical features.
    - **Count diversity** — pairwise fraction of differing features (any type).
 5. Saves per-instance and global (averaged) metrics.
 
 ### Key parameters
+
 | Parameter | Value | Notes |
 |-----------|-------|-------|
-| MAD normalization | Per-column MAD from full dataset | Falls back to `std` if MAD = 0 (e.g. capital-gain/loss), then to 1.0 if both are 0 |
+| MAD normalization | Per-column MAD from full dataset | Sometimes MAD is exactly 0 (e.g. if >50% of people have $0 `capital-gain`). To avoid dividing by zero, the script safely falls back to standard deviation (`std`), then to `1.0` if both are 0. |
 | Proximity sign | Negative (continuous) | Paper convention: closer to 0 is better |
 | Sparsity convention | Higher is better | `1 − (changed / total)` |
 
