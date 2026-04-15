@@ -1,55 +1,32 @@
-"""
-Placeholder issue taxonomy for counterfactual evaluation.
-
->>> IVAN: Replace this file with your finalised taxonomy. <<<
-
-Each entry maps an issue label (used by agents in verdicts) to a short
-human-readable description.  Agents receive these labels in their system
-prompts so they share a common vocabulary.
-
-Guidelines for the taxonomy:
-- Labels should be snake_case identifiers.
-- Descriptions should be one sentence, ≤ 20 words.
-- Keep the dict ordered from most to least severe.
-"""
+"""Issue taxonomy used by agents when evaluating counterfactual explanations."""
 
 from __future__ import annotations
 
 
-# ---------------------------------------------------------------------------
-# Default taxonomy — covers common CF quality issues.
-# Replace with Ivan's research-grounded taxonomy when available.
-# ---------------------------------------------------------------------------
-
 ISSUE_TAXONOMY: dict[str, str] = {
-    "immutable_feature_change": (
-        "The CF changes a feature the individual cannot realistically alter "
-        "(e.g. age, race, sex, native-country)."
-    ),
-    "proxy_feature_change": (
-        "The CF changes a feature that may act as a proxy for a protected "
-        "attribute (e.g. marital-status as proxy for age/gender)."
-    ),
-    "unrealistic_change": (
-        "The CF requires an implausibly large jump in a feature value "
-        "(e.g. capital-gain from 0 to the maximum)."
-    ),
-    "non_actionable_change": (
-        "The CF changes a feature that is outside the individual's control "
-        "or extremely difficult to change."
-    ),
-    "too_many_changes": (
-        "The CF modifies too many features at once, making the suggestion "
-        "impractical or hard to interpret."
-    ),
-    "low_confidence_cf": (
-        "The CF barely crosses the decision boundary — the model's "
-        "confidence in the flipped class is very low."
-    ),
-    "inconsistent_changes": (
-        "The CF contains internally contradictory feature changes "
-        "(e.g. switching to a high-skill job while lowering hours)."
-    ),
+    # ---------------------------------------------------------------------------
+    # Fairness-Sensitive Issues (Most Severe)
+    # ---------------------------------------------------------------------------
+    "sex_change": "The CF modifies the individual's sex or gender.",
+    "race_change": "The CF modifies the individual's race or ethnicity.",
+    "native_country_change": "The CF alters the individual's native country.",
+    
+    # ---------------------------------------------------------------------------
+    # Realism and Consistency
+    # ---------------------------------------------------------------------------
+    "age_reversal": "The CF decreases age, which is biologically impossible.",
+    "implausible_education_jump": "Education jumps by multiple ordinal levels or to an implausible degree.",
+    "extreme_working_hours": "The CF suggests dangerously high or implausibly low working hours.",
+    "inconsistent_work_profile": "Work-related edits are internally inconsistent or temporally implausible.",
+    "education_mismatch": "The education and education_num features become inconsistent with each other.",
+    
+    # ---------------------------------------------------------------------------
+    # Burden and Actionability (Least Severe)
+    # ---------------------------------------------------------------------------
+    "extreme_age_increase": "The CF increases age by an extreme gap, rendering it unactionable.",
+    "unactionable_capital_shift": "The CF suggests a financially unrealistic capital gain or loss.",
+    "too_many_changes": "The CF modifies too many major or minor features at once.",
+    "fnlwgt_change": "The CF modifies the fnlwgt census sampling weight, which is statistical noise.",
 }
 
 
