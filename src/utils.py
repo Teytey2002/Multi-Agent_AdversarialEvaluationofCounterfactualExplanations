@@ -1,7 +1,6 @@
 import os
 import json
 import joblib
-import pandas as pd
 
 from sklearn.metrics import (
     accuracy_score,
@@ -48,11 +47,3 @@ def save_metrics(metrics, filepath):
     """
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(metrics, f, indent=4)
-
-
-def save_results_table(results, filepath):
-    """
-    Save aggregated results as CSV.
-    """
-    df = pd.DataFrame(results)
-    df.to_csv(filepath, index=False)

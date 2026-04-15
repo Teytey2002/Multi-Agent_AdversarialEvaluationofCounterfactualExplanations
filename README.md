@@ -67,10 +67,7 @@ The implemented pipeline currently follows the steps below:
 
 1. **Load the Adult Income dataset** from OpenML.
 2. **Preprocess the data** using a mixed numerical/categorical pipeline.
-3. **Train three classification models**:
-   - Logistic Regression
-   - Random Forest
-   - XGBoost
+3. **Train a Logistic Regression classification model**:
 4. **Evaluate the models** on a held-out test set.
 5. **Save the trained pipelines** as serialized `.joblib` files.
 6. **Select a main predictive model** for the next stages.
@@ -169,15 +166,10 @@ A clean modular structure was adopted to make the next project stages easier to 
 project/
 │
 ├── models/
-│   ├── logistic_regression.joblib
-│   ├── random_forest.joblib
-│   └── xgboost.joblib
+│   └── logistic_regression.joblib
 │
 ├── results/
 │   ├── logistic_regression_metrics.json
-│   ├── random_forest_metrics.json
-│   ├── xgboost_metrics.json
-│   ├── model_comparison.csv
 │   ├── unfavorable_samples.csv
 │   └── counterfactuals.csv
 │
@@ -234,11 +226,9 @@ This design ensures that preprocessing is learned on the training set and consis
 
 ### `src/models.py`
 
-Defines and returns the three candidate classifiers:
+Defines and returns the main classification model:
 
 - `logistic_regression`
-- `random_forest`
-- `xgboost`
 
 This separation makes it easy to add, remove, or tune models without changing the rest of the pipeline.
 
@@ -269,11 +259,10 @@ This is the main training script.
 2. loads the Adult dataset
 3. splits the data into train and test sets
 4. builds the preprocessing pipeline
-5. trains the three models
-6. evaluates each model
-7. saves each full trained pipeline as a `.joblib` file
+5. trains the model
+6. evaluates the model
+7. saves the full trained pipeline as a `.joblib` file
 8. saves detailed metrics in JSON format
-9. saves a global comparison table in CSV format
 
 #### Why full pipelines are saved
 
@@ -402,8 +391,6 @@ Stored in `models/`.
 | File | Description |
 |---|---|
 | `logistic_regression.joblib` | Full trained logistic regression pipeline |
-| `random_forest.joblib` | Full trained random forest pipeline |
-| `xgboost.joblib` | Full trained XGBoost pipeline |
 
 These are the main reusable artifacts for future steps.
 
@@ -416,9 +403,6 @@ Stored in `results/`.
 | File | Description |
 |---|---|
 | `logistic_regression_metrics.json` | Detailed evaluation metrics for logistic regression |
-| `random_forest_metrics.json` | Detailed evaluation metrics for random forest |
-| `xgboost_metrics.json` | Detailed evaluation metrics for XGBoost |
-| `model_comparison.csv` | Summary table comparing the trained models |
 
 ---
 
@@ -531,9 +515,7 @@ The following results were obtained on the Adult dataset.
 
 | Model | Accuracy | Precision | Recall | F1-score |
 |---|---:|---:|---:|---:|
-| Logistic Regression | 0.8524 | 0.7414 | 0.5885 | 0.6562 |
-| Random Forest | 0.8595 | 0.7402 | 0.6360 | 0.6841 |
-| **XGBoost** | **0.8761** | **0.7904** | **0.6565** | **0.7173** |
+| **Logistic Regression** | 0.8524 | 0.7414 | 0.5885 | 0.6562 |
 
 ### Confusion matrices
 
@@ -544,30 +526,11 @@ The following results were obtained on the Adult dataset.
  [ 962, 1376]]
 ```
 
-#### Random Forest
-
-```text
-[[6909, 522],
- [ 851, 1487]]
-```
-
-#### XGBoost
-
-```text
-[[7024, 407],
- [ 803, 1535]]
-```
-
 ### Interpretation
 
-Although all three models perform reasonably well, **XGBoost** provides the strongest overall trade-off between precision, recall, and F1-score.
+The **Logistic Regression** model provides a solid baseline performance. 
 
-This is especially important because the dataset is imbalanced, so a high accuracy alone would not be sufficient to justify model selection.
-
-For this reason:
-
-- **XGBoost** is selected as the **main predictive model** for the next stages.
-- **Logistic Regression** is kept as a useful interpretable baseline.
+This model is selected over more complex tree-based classifiers because it ensures seamless compatibility with DiCE's counterfactual generation methods, particularly the `gradient` and `genetic` optimizers.
 
 ---
 

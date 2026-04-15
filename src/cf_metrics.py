@@ -16,14 +16,23 @@ def get_feature_types(X: pd.DataFrame):
 
 
 def compute_mad_values(X: pd.DataFrame, continuous_cols):
+    """
+    Compute Median Absolute Deviation for each continuous feature.
+
+    When MAD = 0 (e.g. capital-gain where ~90 % of values are 0)
+    we fall back to the standard deviation so that the normalised
+    distance remains on a sensible scale.  If both MAD and std are
+    zero the feature is constant and we use 1.0 (distances will be 0
+    anyway).
+    """
     mad = {}
     for col in continuous_cols:
         median = X[col].median()
         mad_val = np.median(np.abs(X[col] - median))
 
-        # éviter division par zéro
         if mad_val == 0 or pd.isna(mad_val):
-            mad_val = 1.0
+            std_val = X[col].std()
+            mad_val = std_val if (std_val > 0 and not pd.isna(std_val)) else 1.0
 
         mad[col] = mad_val
     return mad
