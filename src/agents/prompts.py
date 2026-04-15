@@ -25,7 +25,7 @@ ISSUE_TAXONOMY: dict[str, str] = {
     # ---------------------------------------------------------------------------
     "extreme_age_increase": "The CF increases age by an extreme gap, rendering it unactionable.",
     "unactionable_capital_shift": "The CF suggests a financially unrealistic capital gain or loss.",
-    "too_many_changes": "The CF modifies too many major or minor features at once.",
+    "too_many_changes": "The CF modifies an overwhelming number of features at once, placing an unrealistic burden on the individual.",
     "fnlwgt_change": "The CF modifies the fnlwgt census sampling weight, which is statistical noise.",
 }
 

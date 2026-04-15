@@ -24,7 +24,7 @@ This taxonomy defines issue labels used to evaluate counterfactual explanations.
 | `extreme_working_hours` | Flag if `hours_per_week` reaches an unrealistic extreme (either dangerously high, or implausibly low for a >50K income). |
 | `inconsistent_work_profile` | Flag if work-related edits are internally inconsistent or temporally implausible (`workclass`, `occupation`, tenure, employment status). |
 | `unactionable_capital_shift` | Flag if `capital_gain` or `capital_loss` increases to a level that is financially unrealistic given the individual's baseline profile. |
-| `too_many_changes` | Flag if >=3 major mutable features change OR 2 major + >=2 minor mutable features change; numeric features count as changed at >=10% relative change or >=0.5 z-score shift. |
+| `too_many_changes` | Flag if the counterfactual modifies an overwhelming number of features at once, placing an unrealistic burden on the individual. |
 | `education_mismatch` | Optional: flag if `education` and `education_num` become inconsistent. |
 
 ### Human-Readable Taxonomy (Grouped)
@@ -47,7 +47,7 @@ This taxonomy defines issue labels used to evaluate counterfactual explanations.
 
 - **`extreme_age_increase`**: Age increases by an extreme amount, rendering the counterfactual useless as a practical near-term plan.
 - **`unactionable_capital_shift`**: `capital_gain` or `capital_loss` increases to a level that is financially unrealistic for the individual (e.g., advising a lower-income worker to simply make huge capital gains).
-- **`too_many_changes`**: At least 3 major mutable features change, or 2 major plus at least 2 minor mutable features change; numeric features count as changed at >=10% relative change or >=0.5 z-score shift.
+- **`too_many_changes`**: The counterfactual modifies an overwhelming number of features at once, placing an unrealistic burden on the individual.
 - **`fnlwgt_change`**: `fnlwgt` changes, even though it is not a meaningful or user-actionable recommendation target. (Note: `fnlwgt` is a census sampling weight. If DiCE modifies this, it's a technical misconfiguration in the ML pipeline, not a semantic property of the explanation to be debated. Ideally, `fnlwgt` should be frozen or dropped before generation so the Judge doesn't waste tokens evaluating statistical noise.)
 
 ### Mutable Feature Tiers (for `too_many_changes`)
@@ -110,7 +110,7 @@ ISSUE_TAXONOMY = {
     "extreme_working_hours": "Flag if the suggested hours_per_week reaches an unrealistic extreme (dangerously high, or implausibly low for a >50K income).",
     "inconsistent_work_profile": "Flag if work-related edits are internally inconsistent or temporally implausible (workclass, occupation, tenure, employment status).",
     "unactionable_capital_shift": "Flag if capital_gain or capital_loss increases to a level that is financially unrealistic given the individual's baseline profile.",
-    "too_many_changes": "Flag if >=3 major mutable features change OR 2 major + >=2 minor mutable features change; numeric features count as changed at >=10% relative change or >=0.5 z-score shift.",
+    "too_many_changes": "Flag if the counterfactual modifies an overwhelming number of features at once, placing an unrealistic burden on the individual.",
     "education_mismatch": "Optional: flag if education and education_num become inconsistent.",
 }
 ```

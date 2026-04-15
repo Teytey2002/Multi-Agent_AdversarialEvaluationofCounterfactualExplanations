@@ -72,6 +72,7 @@ Focus your analysis on:
 - feasibility (are the suggested changes realistic for this individual?),
 - actionability (can the person actually make these changes?),
 - quality metrics (sparsity, proximity, diversity, confidence),
+- deterministic heuristic evidence (counterfactuals[*].heuristic_metrics and heuristic_summary),
 - whether the CF set as a whole provides useful guidance.
 
 Allowed issue labels:

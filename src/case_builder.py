@@ -25,6 +25,7 @@ Programmatic:
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 from pathlib import Path
 from typing import Any, Callable
@@ -42,6 +43,7 @@ COUNTERFACTUALS_PATH = RESULTS_DIR / "counterfactuals.csv"
 METRICS_PATH = RESULTS_DIR / "cf_metrics_per_instance.csv"
 MODEL_METRICS_PATH = RESULTS_DIR / "logistic_regression_metrics.json"
 OUTPUT_PATH = RESULTS_DIR / "cases.json"
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 # Features that the pipeline declares as immutable during CF generation
 IMMUTABLE_FEATURES = [
@@ -57,6 +59,19 @@ FEATURE_COLS = [
 ]
 
 LABEL_MAP = {0: "<=50K", 1: ">50K"}
+
+# Column aliases to reconcile Adult CSV names (hyphenated) with code variants
+# used in heuristics and taxonomy notes (underscored).
+# MUST map ALL hyphenated feature names from FEATURE_COLS to maintain consistency
+# across the case_builder → heuristics pipeline.
+FEATURE_ALIASES = {
+    "education-num": "education_num",
+    "marital-status": "marital_status",
+    "capital-gain": "capital_gain",
+    "capital-loss": "capital_loss",
+    "hours-per-week": "hours_per_week",
+    "native-country": "native_country",
+}
 
 
 # ---------------------------------------------------------------------------
@@ -82,16 +97,51 @@ def _row_to_features(row: pd.Series) -> dict[str, Any]:
 
 
 def _compute_changes(original: dict, cf: dict) -> tuple[list[str], dict]:
-    """Return (features_changed, changes_summary) comparing original vs CF."""
+    """Return (features_changed, changes_summary) comparing original vs CF.
+    
+    Uses underscored feature names for consistency with heuristics logic.
+    """
     changed: list[str] = []
     summary: dict[str, dict[str, Any]] = {}
     for feat in FEATURE_COLS:
         orig_val = original.get(feat)
         cf_val = cf.get(feat)
         if orig_val != cf_val:
-            changed.append(feat)
-            summary[feat] = {"from": orig_val, "to": cf_val}
+            # Convert hyphenated feature name to underscored for consistency
+            canonical_feat = FEATURE_ALIASES.get(feat, feat)
+            changed.append(canonical_feat)
+            summary[canonical_feat] = {"from": orig_val, "to": cf_val}
     return changed, summary
+
+
+def _with_aliases(row_dict: dict[str, Any]) -> dict[str, Any]:
+    """Return a heuristics-friendly row with canonical underscore feature names.
+    
+    Converts hyphenated feature names (from CSV) to underscored names for consistency
+    with heuristics.py logic and issue taxonomy.
+    """
+    out: dict[str, Any] = {}
+    for key, value in row_dict.items():
+        # Convert hyphenated names to underscored; pass through others unchanged
+        canonical_key = FEATURE_ALIASES.get(key, key)
+        out[canonical_key] = value
+
+    return out
+
+
+def _load_heuristic_fn() -> Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]] | None:
+    """Load compute_heuristic_metrics from repo-root heuristics.py if available."""
+    heuristics_path = PROJECT_ROOT / "heuristics.py"
+    if not heuristics_path.exists():
+        return None
+
+    spec = importlib.util.spec_from_file_location("bridge_heuristics", heuristics_path)
+    if spec is None or spec.loader is None:
+        return None
+
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return getattr(module, "compute_heuristic_metrics", None)
 
 
 def _load_model_metrics() -> dict[str, Any]:
@@ -139,6 +189,7 @@ def build_cases(
     cf_all = pd.read_csv(COUNTERFACTUALS_PATH)
     metrics = pd.read_csv(METRICS_PATH)
     model_info = _load_model_metrics()
+    heuristic_fn = _load_heuristic_fn()
 
     # Index metrics by original_index for quick lookup
     metrics_map: dict[int, dict] = {}
@@ -165,15 +216,26 @@ def build_cases(
         ]
 
         counterfactuals: list[dict[str, Any]] = []
+        aggregate_issue_labels: set[str] = set()
         for _, cf_row in instance_cfs.iterrows():
             cf_features = _row_to_features(cf_row)
             changed, summary = _compute_changes(original_features, cf_features)
+            heuristic_metrics: dict[str, Any] = {}
+            if heuristic_fn is not None:
+                heuristic_metrics = heuristic_fn(
+                    _with_aliases(original_features),
+                    _with_aliases(cf_features),
+                )
+                for issue in heuristic_metrics.get("flagged_issues", []):
+                    aggregate_issue_labels.add(str(issue))
+
             counterfactuals.append({
                 "cf_rank": int(cf_row["cf_rank"]),
                 "cf_confidence": _safe_python(cf_row["cf_confidence"]),
                 "features": cf_features,
                 "features_changed": changed,
                 "changes_summary": summary,
+                "heuristic_metrics": heuristic_metrics,
             })
 
         # --- Assemble the case dict -------------------------------------
@@ -188,6 +250,10 @@ def build_cases(
             "is_false_negative": bool(srow["is_false_negative"]),
             "counterfactuals": counterfactuals,
             "metrics": metrics_map.get(int(i), {}),
+            "heuristic_summary": {
+                "heuristics_enabled": heuristic_fn is not None,
+                "flagged_issues_union": sorted(aggregate_issue_labels),
+            },
             "ground_truth_issues": [],  # ← Ivan's taxonomy plugs in here
         }
 
