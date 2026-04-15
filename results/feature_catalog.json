@@ -1,0 +1,208 @@
+{
+  "age": {
+    "type": "numerical",
+    "n_unique": 74,
+    "min": 17.0,
+    "max": 90.0,
+    "mean": 38.64,
+    "median": 37.0,
+    "std": 13.71
+  },
+  "workclass": {
+    "type": "categorical",
+    "n_unique": 9,
+    "values": {
+      "Federal-gov": 1432,
+      "Local-gov": 3136,
+      "Never-worked": 10,
+      "Private": 33906,
+      "Self-emp-inc": 1695,
+      "Self-emp-not-inc": 3862,
+      "State-gov": 1981,
+      "Without-pay": 21,
+      "nan": 2799
+    }
+  },
+  "education": {
+    "type": "categorical",
+    "n_unique": 16,
+    "values": {
+      "10th": 1389,
+      "11th": 1812,
+      "12th": 657,
+      "1st-4th": 247,
+      "5th-6th": 509,
+      "7th-8th": 955,
+      "9th": 756,
+      "Assoc-acdm": 1601,
+      "Assoc-voc": 2061,
+      "Bachelors": 8025,
+      "Doctorate": 594,
+      "HS-grad": 15784,
+      "Masters": 2657,
+      "Preschool": 83,
+      "Prof-school": 834,
+      "Some-college": 10878
+    }
+  },
+  "education-num": {
+    "type": "numerical",
+    "n_unique": 16,
+    "min": 1.0,
+    "max": 16.0,
+    "mean": 10.08,
+    "median": 10.0,
+    "std": 2.57
+  },
+  "marital-status": {
+    "type": "categorical",
+    "n_unique": 7,
+    "values": {
+      "Divorced": 6633,
+      "Married-AF-spouse": 37,
+      "Married-civ-spouse": 22379,
+      "Married-spouse-absent": 628,
+      "Never-married": 16117,
+      "Separated": 1530,
+      "Widowed": 1518
+    }
+  },
+  "occupation": {
+    "type": "categorical",
+    "n_unique": 15,
+    "values": {
+      "Adm-clerical": 5611,
+      "Armed-Forces": 15,
+      "Craft-repair": 6112,
+      "Exec-managerial": 6086,
+      "Farming-fishing": 1490,
+      "Handlers-cleaners": 2072,
+      "Machine-op-inspct": 3022,
+      "Other-service": 4923,
+      "Priv-house-serv": 242,
+      "Prof-specialty": 6172,
+      "Protective-serv": 983,
+      "Sales": 5504,
+      "Tech-support": 1446,
+      "Transport-moving": 2355,
+      "nan": 2809
+    }
+  },
+  "relationship": {
+    "type": "categorical",
+    "n_unique": 6,
+    "values": {
+      "Husband": 19716,
+      "Not-in-family": 12583,
+      "Other-relative": 1506,
+      "Own-child": 7581,
+      "Unmarried": 5125,
+      "Wife": 2331
+    }
+  },
+  "race": {
+    "type": "categorical",
+    "n_unique": 5,
+    "values": {
+      "Amer-Indian-Eskimo": 470,
+      "Asian-Pac-Islander": 1519,
+      "Black": 4685,
+      "Other": 406,
+      "White": 41762
+    }
+  },
+  "sex": {
+    "type": "categorical",
+    "n_unique": 2,
+    "values": {
+      "Female": 16192,
+      "Male": 32650
+    }
+  },
+  "capital-gain": {
+    "type": "numerical",
+    "n_unique": 123,
+    "min": 0.0,
+    "max": 99999.0,
+    "mean": 1079.07,
+    "median": 0.0,
+    "std": 7452.02
+  },
+  "capital-loss": {
+    "type": "numerical",
+    "n_unique": 99,
+    "min": 0.0,
+    "max": 4356.0,
+    "mean": 87.5,
+    "median": 0.0,
+    "std": 403.0
+  },
+  "hours-per-week": {
+    "type": "numerical",
+    "n_unique": 96,
+    "min": 1.0,
+    "max": 99.0,
+    "mean": 40.42,
+    "median": 40.0,
+    "std": 12.39
+  },
+  "native-country": {
+    "type": "categorical",
+    "n_unique": 42,
+    "values": {
+      "Cambodia": 28,
+      "Canada": 182,
+      "China": 122,
+      "Columbia": 85,
+      "Cuba": 138,
+      "Dominican-Republic": 103,
+      "Ecuador": 45,
+      "El-Salvador": 155,
+      "England": 127,
+      "France": 38,
+      "Germany": 206,
+      "Greece": 49,
+      "Guatemala": 88,
+      "Haiti": 75,
+      "Holand-Netherlands": 1,
+      "Honduras": 20,
+      "Hong": 30,
+      "Hungary": 19,
+      "India": 151,
+      "Iran": 59,
+      "Ireland": 37,
+      "Italy": 105,
+      "Jamaica": 106,
+      "Japan": 92,
+      "Laos": 23,
+      "Mexico": 951,
+      "Nicaragua": 49,
+      "Outlying-US(Guam-USVI-etc)": 23,
+      "Peru": 46,
+      "Philippines": 295,
+      "Poland": 87,
+      "Portugal": 67,
+      "Puerto-Rico": 184,
+      "Scotland": 21,
+      "South": 115,
+      "Taiwan": 65,
+      "Thailand": 30,
+      "Trinadad&Tobago": 27,
+      "United-States": 43832,
+      "Vietnam": 86,
+      "Yugoslavia": 23,
+      "nan": 857
+    }
+  },
+  "_target (income)": {
+    "type": "binary",
+    "mapping": {
+      "<=50K": 0,
+      ">50K": 1
+    },
+    "distribution": {
+      "<=50K": 37155,
+      ">50K": 11687
+    }
+  }
+}

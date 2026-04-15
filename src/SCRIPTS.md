@@ -131,7 +131,7 @@ PYTHONPATH=src python src/<script>.py
 3. Filters rows with NaN values (`?` markers in workclass / occupation) to guarantee clean downstream input.
 4. Filters *unfavorable* cases (predicted class = 0, i.e. ≤50 K).
 5. Randomly samples `SAMPLE_SIZE` unfavorable individuals (`random_state=42`).
-6. Adds an `is_false_negative` flag: `True` when the model predicted 0 but the true label was 1.
+6. Adds an `is_false_negative` flag: `True` when the model predicted 0 but the true label was 1. **Why this matters:** Counterfactuals generated for individuals the model already misclassifies are inherently less trustworthy. The downstream evaluation agents use this flag to properly contextualize or discount explanations for individuals the model simply failed to understand.
 7. Saves the sample to CSV.
 
 ### Key parameters
