@@ -7,16 +7,17 @@ Each case corresponds to one unfavorable individual and contains:
   - all counterfactuals produced by DiCE (with per-CF confidence)
   - DiCE-paper quality metrics (proximity, sparsity, diversity …)
   - model-level performance context
+  - deterministic heuristic flags from heuristics.py
   - a `ground_truth_issues` placeholder for Ivan's issue taxonomy
 
 Usage
 -----
 From the repo root:
 
-    $env:PYTHONPATH="src"; python src/case_builder.py          # writes results/cases.json
-    $env:PYTHONPATH="src"; python src/case_builder.py --pretty  # human-readable indent
+    python src/case_builder.py          # writes results/cases.json
+    python src/case_builder.py --pretty  # human-readable indent
 
-Programmatic:
+Programmatic (from src/ directory):
 
     from case_builder import build_cases
     cases = build_cases()          # list[dict] ready for run_debate()
@@ -25,13 +26,14 @@ Programmatic:
 from __future__ import annotations
 
 import argparse
-import importlib.util
 import json
 from pathlib import Path
 from typing import Any, Callable
 
 import numpy as np
 import pandas as pd
+
+from heuristics import compute_heuristic_metrics
 
 
 # ---------------------------------------------------------------------------
@@ -43,7 +45,6 @@ COUNTERFACTUALS_PATH = RESULTS_DIR / "counterfactuals.csv"
 METRICS_PATH = RESULTS_DIR / "cf_metrics_per_instance.csv"
 MODEL_METRICS_PATH = RESULTS_DIR / "logistic_regression_metrics.json"
 OUTPUT_PATH = RESULTS_DIR / "cases.json"
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 # Features that the pipeline declares as immutable during CF generation
 IMMUTABLE_FEATURES = [
@@ -129,19 +130,9 @@ def _with_aliases(row_dict: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
-def _load_heuristic_fn() -> Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]] | None:
-    """Load compute_heuristic_metrics from repo-root heuristics.py if available."""
-    heuristics_path = PROJECT_ROOT / "heuristics.py"
-    if not heuristics_path.exists():
-        return None
-
-    spec = importlib.util.spec_from_file_location("bridge_heuristics", heuristics_path)
-    if spec is None or spec.loader is None:
-        return None
-
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return getattr(module, "compute_heuristic_metrics", None)
+def _load_heuristic_fn() -> Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]]:
+    """Return the compute_heuristic_metrics function (always available since imported)."""
+    return compute_heuristic_metrics
 
 
 def _load_model_metrics() -> dict[str, Any]:
@@ -220,14 +211,12 @@ def build_cases(
         for _, cf_row in instance_cfs.iterrows():
             cf_features = _row_to_features(cf_row)
             changed, summary = _compute_changes(original_features, cf_features)
-            heuristic_metrics: dict[str, Any] = {}
-            if heuristic_fn is not None:
-                heuristic_metrics = heuristic_fn(
-                    _with_aliases(original_features),
-                    _with_aliases(cf_features),
-                )
-                for issue in heuristic_metrics.get("flagged_issues", []):
-                    aggregate_issue_labels.add(str(issue))
+            heuristic_metrics = heuristic_fn(
+                _with_aliases(original_features),
+                _with_aliases(cf_features),
+            )
+            for issue in heuristic_metrics.get("flagged_issues", []):
+                aggregate_issue_labels.add(str(issue))
 
             counterfactuals.append({
                 "cf_rank": int(cf_row["cf_rank"]),
@@ -251,7 +240,6 @@ def build_cases(
             "counterfactuals": counterfactuals,
             "metrics": metrics_map.get(int(i), {}),
             "heuristic_summary": {
-                "heuristics_enabled": heuristic_fn is not None,
                 "flagged_issues_union": sorted(aggregate_issue_labels),
             },
             "ground_truth_issues": [],  # ← Ivan's taxonomy plugs in here
