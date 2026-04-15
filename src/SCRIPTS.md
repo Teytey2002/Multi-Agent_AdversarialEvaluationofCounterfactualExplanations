@@ -1,7 +1,7 @@
 # Pipeline Scripts — Per-Script Documentation
 
 > Quick reference for every script in `src/`.
-> Run order: **data_loader → preprocessing → models → train → predict → generate_cf → cf_metrics → case_builder → run_debate**
+> Run order: **data_loader → explore_data → preprocessing → models → train → predict → generate_cf → cf_metrics → case_builder → run_debate**
 > (utils is a shared helper module; agents/ is a package used by run_debate.)
 
 All scripts must be executed from the **repo root** with `PYTHONPATH=src`:
@@ -36,6 +36,42 @@ PYTHONPATH=src python src/<script>.py
 |---|---|
 | **Input** | Internet connection (first call) or local sklearn cache |
 | **Output** | `X` — DataFrame (48 842 × 14 features), `y` — Series (binary 0/1) |
+
+---
+
+## 1b. `explore_data.py`
+
+**Purpose** — Catalogue every feature's possible values to support taxonomy design and agent prompt grounding.
+
+### Workflow
+1. Loads the Adult dataset via `load_adult_dataset()`.
+2. For each feature (except `fnlwgt` — a census sampling weight with ~28 K unique values):
+   - **Categorical**: lists every unique value with its frequency count.
+   - **Numerical**: computes min, max, mean, median, std, and unique-value count.
+3. Also summarises the target distribution (`<=50K` / `>50K`).
+4. Writes everything to a single JSON file.
+
+### Key parameters
+| Parameter | Value | Notes |
+|-----------|-------|-------|
+| `SKIP_FEATURES` | `{"fnlwgt"}` | Not meaningful for taxonomy design |
+
+### CLI
+```bash
+$env:PYTHONPATH="src"; python src/explore_data.py
+```
+
+### Inputs / Outputs
+| | Description |
+|---|---|
+| **Input** | OpenML Adult dataset (auto-downloaded / cached) |
+| **Output** | `results/feature_catalog.json` — per-feature value catalog |
+
+### Why this matters
+The output provides a grounded reference for:
+- **Issue taxonomy design** — knowing that `workclass` has 9 values (including `nan`) or that `capital-gain` has a median of 0 helps set realistic thresholds for what constitutes an "unrealistic change".
+- **Agent prompt calibration** — agents can reference real value distributions instead of guessing.
+- **Box constraint validation** — compare DiCE's `permitted_range` in `generate_cf.py` against actual data ranges (e.g. `hours-per-week` real range [1, 99] vs box constraint [20, 50]).
 
 ---
 
