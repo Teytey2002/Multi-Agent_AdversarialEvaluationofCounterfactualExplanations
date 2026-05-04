@@ -208,19 +208,33 @@ def build_cases(
 
         counterfactuals: list[dict[str, Any]] = []
         aggregate_issue_labels: set[str] = set()
+        aggregate_constraint_violations: set[str] = set()
+        aggregate_issue_evidence: dict[str, list[dict[str, Any]]] = {}
+        aggregate_constraint_evidence: dict[str, list[dict[str, Any]]] = {}
         for _, cf_row in instance_cfs.iterrows():
             cf_features = _row_to_features(cf_row)
             changed, summary = _compute_changes(original_features, cf_features)
+            cf_confidence = _safe_python(cf_row["cf_confidence"])
             heuristic_metrics = heuristic_fn(
                 _with_aliases(original_features),
                 _with_aliases(cf_features),
+                cf_confidence=cf_confidence,
             )
             for issue in heuristic_metrics.get("flagged_issues", []):
                 aggregate_issue_labels.add(str(issue))
 
+            for violation in heuristic_metrics.get("constraint_violations", []):
+                aggregate_constraint_violations.add(str(violation))
+
+            for label, evidence_items in heuristic_metrics.get("issue_evidence", {}).items():
+                aggregate_issue_evidence.setdefault(label, []).extend(evidence_items)
+
+            for label, evidence_items in heuristic_metrics.get("constraint_evidence", {}).items():
+                aggregate_constraint_evidence.setdefault(label, []).extend(evidence_items)
+
             counterfactuals.append({
                 "cf_rank": int(cf_row["cf_rank"]),
-                "cf_confidence": _safe_python(cf_row["cf_confidence"]),
+                "cf_confidence": cf_confidence,
                 "features": cf_features,
                 "features_changed": changed,
                 "changes_summary": summary,
@@ -241,6 +255,9 @@ def build_cases(
             "metrics": metrics_map.get(int(i), {}),
             "heuristic_summary": {
                 "flagged_issues_union": sorted(aggregate_issue_labels),
+                "constraint_violations_union": sorted(aggregate_constraint_violations),
+                "issue_evidence": aggregate_issue_evidence,
+                "constraint_evidence": aggregate_constraint_evidence,
             },
             "ground_truth_issues": [],  # ← Ivan's taxonomy plugs in here
         }

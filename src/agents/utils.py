@@ -17,6 +17,8 @@ from typing import Any
 
 from agents.config import MODEL_PRICING_USD_PER_1M, DEFAULT_MODELS
 
+from agents.prompts import get_valid_issue_labels
+
 
 # ---------------------------------------------------------------------------
 # Content extraction
@@ -131,7 +133,17 @@ def parse_judge_verdict(message: Any) -> dict[str, Any]:
             verdict.setdefault("flagged_issues", [])
             if not isinstance(verdict["flagged_issues"], list):
                 verdict["flagged_issues"] = [str(verdict["flagged_issues"])]
-            verdict["flagged_issues"] = [str(i) for i in verdict["flagged_issues"]]
+            raw_issues = [str(i) for i in verdict["flagged_issues"]]
+            valid_labels = get_valid_issue_labels()
+
+            valid_issues = sorted({label for label in raw_issues if label in valid_labels})
+            invalid_issues = sorted({label for label in raw_issues if label not in valid_labels})
+
+            verdict["flagged_issues"] = valid_issues
+
+            if invalid_issues:
+                verdict["invalid_flagged_issues"] = invalid_issues
+
             return verdict
         except json.JSONDecodeError as exc:
             last_error = exc

@@ -15,13 +15,19 @@ from __future__ import annotations
 
 from autogen_agentchat.agents import AssistantAgent
 
-from agents.prompts import get_issue_guidance
+from agents.prompts import (
+    get_issue_guidance,
+    get_constraint_guidance,
+    get_evidence_guidance,
+)
 
 
 def build_debate_agents(model_client) -> dict[str, AssistantAgent]:
     """Create the 4 debate agents used in the multi-agent workflow."""
 
     issue_guidance = get_issue_guidance()
+    constraint_guidance = get_constraint_guidance()
+    evidence_guidance = get_evidence_guidance()
 
     prosecutor = AssistantAgent(
         name="Prosecutor",
@@ -33,8 +39,8 @@ generated for an income-prediction model (Adult Income dataset, Logistic Regress
 
 Your role:
 - Attack the fairness, feasibility, and actionability of the proposed counterfactuals.
-- Point out changes to immutable or sensitive features (even if the CF generator
-  was supposed to freeze them — check whether the output actually did).
+- Point out changes to immutable or sensitive features as constraint violations,
+  not as scored issue labels.
 - Highlight unrealistic jumps (e.g. occupation changes that are implausible given
   the individual's profile).
 - Scrutinise low-confidence counterfactuals — if cf_confidence is barely above 0.5,
@@ -47,8 +53,15 @@ Your role:
 Allowed issue labels:
 {issue_guidance}
 
+Constraint-violation guidance:
+{constraint_guidance}
+
+Heuristic evidence guidance:
+{evidence_guidance}
+
 Rules:
-- Use only the issue labels above when naming a problem.
+- Use only the scored issue labels above in `flagged_issues`.
+- Mention constraint violations separately when relevant.
 - Cite concrete feature values and changes from the case data.
 - Be concise and evidence-focused.
 - Do NOT ask for more data — argue from what is provided.
@@ -76,6 +89,12 @@ Your role:
 
 Allowed issue labels:
 {issue_guidance}
+
+Constraint-violation guidance:
+{constraint_guidance}
+
+Heuristic evidence guidance:
+{evidence_guidance}
 
 Rules:
 - Use the same issue labels as the rest of the team.
@@ -118,6 +137,12 @@ Your role — provide technical analysis based on the REAL data in the case:
 Allowed issue labels:
 {issue_guidance}
 
+Constraint-violation guidance:
+{constraint_guidance}
+
+Heuristic evidence guidance:
+{evidence_guidance}
+
 Rules:
 - Stay neutral and technical — you inform the debate, not advocate.
 - Base ALL analysis on the actual data provided in the case.
@@ -143,6 +168,12 @@ Your job:
 
 Allowed issue labels:
 {issue_guidance}
+
+Constraint-violation guidance:
+{constraint_guidance}
+
+Heuristic evidence guidance:
+{evidence_guidance}
 
 Output requirements:
 - Return exactly ONE JSON object inside a ```json fenced block.
@@ -182,6 +213,8 @@ def build_single_evaluator_agent(model_client) -> AssistantAgent:
     """Create a single-agent baseline for comparison against the debate."""
 
     issue_guidance = get_issue_guidance()
+    constraint_guidance = get_constraint_guidance()
+    evidence_guidance = get_evidence_guidance()
 
     return AssistantAgent(
         name="Single_Evaluator",
@@ -203,6 +236,12 @@ Consider:
 
 Allowed issue labels:
 {issue_guidance}
+
+Constraint-violation guidance:
+{constraint_guidance}
+
+Heuristic evidence guidance:
+{evidence_guidance}
 
 Output requirements:
 - Return exactly ONE JSON object inside a ```json fenced block.

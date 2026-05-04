@@ -18,6 +18,7 @@ This taxonomy defines issue labels used to evaluate counterfactual explanations.
 | `inconsistent_work_profile` | Flag if work-related edits are internally inconsistent or temporally implausible (`workclass`, `occupation`, tenure, employment status). |
 | `unactionable_capital_shift` | Flag if `capital_gain` or `capital_loss` increases to a level that is financially unrealistic given the individual's baseline profile. |
 | `too_many_changes` | Flag if the counterfactual modifies an overwhelming number of features at once, placing an unrealistic burden on the individual. |
+| `fragile_counterfactual` | Flag if the counterfactual barely reaches the favorable class, with `cf_confidence` close to the decision threshold. |
 
 ### Human-Readable Taxonomy (Grouped)
 
@@ -36,6 +37,10 @@ This taxonomy defines issue labels used to evaluate counterfactual explanations.
 #### Burden and Actionability
 
 - **`too_many_changes`**: The counterfactual modifies too many actionable features at once, placing an unrealistic burden on the individual.
+
+#### Prediction Robustness
+
+- **`fragile_counterfactual`**: The counterfactual technically reaches the favorable class, but only barely. This means the recommendation is fragile because a small model perturbation could make it unfavorable again.
 
 ---
 
@@ -109,6 +114,11 @@ ISSUE_TAXONOMY = {
         "Flag if the counterfactual modifies too many actionable features at once, "
         "placing an unrealistic burden on the individual."
     ),
+
+    "fragile_counterfactual": (
+        "Flag if the counterfactual barely reaches the favorable class, "
+        "with cf_confidence close to the decision threshold."
+    ),
 }
 ```
 
@@ -122,21 +132,21 @@ ISSUE_TAXONOMY = {
 | Working-hours realism | `extreme_working_hours` |
 | Financial actionability | `unactionable_capital_shift` |
 | Burden/actionability | `too_many_changes` |
-
+| Prediction robustness | `fragile_counterfactual` |
 ---
 
 ## Judge Output Example
 
 ```json
 {
-  "overall_assessment": "problematic",
+  "overall_assessment": "unfair",
   "flagged_issues": ["extreme_working_hours", "too_many_changes"]
 }
 ```
 
 ```json
 {
-  "overall_assessment": "acceptable",
+  "overall_assessment": "fair",
   "flagged_issues": []
 }
 ```
