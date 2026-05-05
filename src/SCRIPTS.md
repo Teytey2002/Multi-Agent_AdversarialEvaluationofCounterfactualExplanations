@@ -441,6 +441,225 @@ GEMINI_API_KEY=AIza...
 OPENAI_API_KEY=sk-...
 ```
 
+### Debate flow — how a single case is processed
+
+This section walks through exactly what happens inside `debate.py` and `agents.py` when `run_debate()` is called for one case.
+
+#### 0. Before the debate starts — what every agent already knows
+
+Every agent is instantiated once with a **system message** baked in at construction time (in `agents.py`). The system message is the same for the entire run — it never changes between cases.
+
+Each system message contains:
+
+| Component | Contents |
+|-----------|----------|
+| **Role description** | Who the agent is and what its job is |
+| **Behavioural rules** | What to do, what not to do (e.g. "do NOT produce JSON", "do NOT invent facts") |
+| **Issue taxonomy** | The full `ISSUE_TAXONOMY` bullet list from `prompts.py`, injected via `get_issue_guidance()` — this is the shared vocabulary all agents use when naming problems |
+
+The taxonomy injection looks like this at runtime:
+```
+- immutable_feature_change: The CF changes a feature the individual cannot realistically alter (e.g. age, race, sex, native-country).
+- proxy_feature_change: The CF changes a feature that may act as a proxy for a protected attribute...
+- unrealistic_change: The CF requires an implausibly large jump in a feature value...
+- non_actionable_change: ...
+- too_many_changes: ...
+- low_confidence_cf: ...
+- inconsistent_changes: ...
+```
+
+#### 1. The opening task message — what the team receives
+
+`_build_case_prompt(case_data, max_rounds)` in `debate.py` constructs the **task message** that is broadcast to the whole `SelectorGroupChat` at the start. Every agent reads this same message.
+
+It contains two layers:
+
+**Layer 1 — Human-readable header** (auto-generated from the case fields):
+```
+Individual: 42yo Male, Craft-repair, HS-grad, Married-civ-spouse
+Model prediction: <=50K (confidence 0.71)
+True label: <=50K  |  False negative: False
+Number of counterfactuals generated: 4
+```
+
+**Layer 2 — Full raw case JSON** (the entire `cases.json` entry, pretty-printed):
+```json
+{
+  "case_id": 0,
+  "domain": "income_prediction",
+  "model_info": { "name": "logistic_regression", "accuracy": 0.8524, ... },
+  "original": { "age": 42, "sex": "Male", "occupation": "Craft-repair", ... },
+  "prediction": "<=50K",
+  "prediction_confidence": 0.71,
+  "true_label": "<=50K",
+  "is_false_negative": false,
+  "counterfactuals": [
+    {
+      "cf_rank": 0,
+      "cf_confidence": 0.63,
+      "features_changed": ["occupation", "hours-per-week"],
+      "changes_summary": {
+        "occupation":     { "from": "Craft-repair",    "to": "Exec-managerial" },
+        "hours-per-week": { "from": 40,                "to": 50 }
+      }
+    },
+    { "cf_rank": 1, "cf_confidence": 0.58, ... },
+    ...
+  ],
+  "metrics": {
+    "validity": 1.0,
+    "continuous_proximity": -0.42,
+    "categorical_proximity": 0.91,
+    "sparsity": 0.857,
+    "continuous_diversity": 0.21,
+    "categorical_diversity": 0.18,
+    "count_diversity": 0.19
+  },
+  "ground_truth_issues": []
+}
+```
+
+The task message also states the debate structure rules — how many rounds, that the Judge speaks last, and that agents must not invent evidence.
+
+#### 2. Speaker order — who speaks and when
+
+The `SelectorGroupChat` uses a **selector function** to pick the next speaker after every message. Two modes are available:
+
+**`round_robin` (default):**
+
+```
+Turn 1 → Prosecutor
+Turn 2 → Defense
+Turn 3 → Expert_Witness
+Turn 4 → Prosecutor       ← round 2 starts
+Turn 5 → Defense
+Turn 6 → Expert_Witness
+Turn 7 → Judge            ← all specialist rounds exhausted
+```
+
+Formula: `specialist_turns = count of specialist messages so far`. Once `specialist_turns ≥ max_rounds × 3`, the Judge is forced next.
+
+**`auto`:**  
+The selector narrows the candidate pool at each step (never repeating the same speaker twice in a row), but still forces `Judge` once the round budget is exhausted. The LLM selector prompt then picks from the narrowed pool.
+
+#### 3. What each agent receives when it is selected
+
+In AutoGen's `SelectorGroupChat`, when an agent is selected it receives the **entire conversation history** up to that point — the opening task message plus every message produced by any agent so far. There is no private channel; all agents read all messages.
+
+| When selected | Context the agent sees |
+|---------------|------------------------|
+| **Prosecutor** (turn 1) | System message + task message (full case JSON + header + rules) |
+| **Defense** (turn 2) | System message + task message + Prosecutor's argument |
+| **Expert\_Witness** (turn 3) | System message + task message + Prosecutor's argument + Defense's argument |
+| **Prosecutor** (turn 4, round 2) | System message + all previous turns |
+| … | … |
+| **Judge** (final turn) | System message + task message + **all specialist arguments from all rounds** |
+
+This is the key architectural property: **every agent always has the full debate context**, not just messages directed at them. The Judge in particular synthesises the complete exchange.
+
+#### 4. What each agent is supposed to produce
+
+| Agent | Output format | Output content |
+|-------|---------------|----------------|
+| **Prosecutor** | Free-form prose | Attacks — specific issues, citing feature values, metrics, issue labels |
+| **Defense** | Free-form prose | Counter-arguments — defends actionability, sparsity, diversity |
+| **Expert\_Witness** | Free-form prose | Technical reading of DiCE metrics, confidence scores, feasibility assessment |
+| **Judge** | Fenced JSON block + `VERDICT_COMPLETE` | Structured verdict (see schema below) |
+
+The Judge's required output format:
+````
+```json
+{
+  "case_id": 0,
+  "overall_assessment": "fair",
+  "flagged_issues": ["low_confidence_cf"],
+  "severity": "low",
+  "confidence": 0.78,
+  "reasoning_summary": "CFs are sparse and actionable but two have barely-above-0.5 confidence.",
+  "recommended_action": "review"
+}
+```
+VERDICT_COMPLETE
+````
+
+`VERDICT_COMPLETE` on its own line is the termination signal — `TextMentionTermination` watches for it and stops the chat.
+
+#### 5. Verdict parsing and output
+
+After the chat terminates, `utils.parse_judge_verdict()` extracts the JSON from the Judge's last message. It tries three strategies in order:
+
+1. Regex match for a fenced ` ```json ... ``` ` block.
+2. Regex match for any fenced ` ``` ... ``` ` block.
+3. Balanced-brace scan to extract the first `{...}` object from raw text.
+
+The extracted verdict dict, the full transcript, and cost estimates are returned by `run_debate()` and saved to `results/debate_outputs/`.
+
+#### 6. Full flow diagram
+
+```
+results/cases.json
+       │
+       ▼
+run_debate(case_data)
+       │
+       ├─ _build_case_prompt()  ─────────────────────────────────────────────┐
+       │   • human-readable header (age, sex, occupation, prediction, FN flag)│
+       │   • full case JSON (original, counterfactuals[], metrics, model_info) │
+       │   • issue taxonomy bullet list                                        │
+       │   • debate rules (max_rounds, Judge speaks last)                      │
+       └──────────────────────────► SelectorGroupChat.run_stream(task=prompt) │
+                                                                               │
+  ┌────────────────────────────────────────────────────────────────────────── ┘
+  │  All agents share the same model_client and see the full conversation history
+  │
+  │  ROUND 1
+  ├── Prosecutor  ◄── [system_msg] + [task] 
+  │   └── attacks: cites cf_confidence, changes_summary, metrics, issue labels
+  │
+  ├── Defense     ◄── [system_msg] + [task] + [Prosecutor msg]
+  │   └── defends: highlights sparsity, actionable features, narrows claims
+  │
+  ├── Expert_Witness ◄── [system_msg] + [task] + [Prosecutor] + [Defense]
+  │   └── technical: reads validity/proximity/sparsity/diversity, flags fragile flips
+  │
+  │  ROUND 2  (if max_rounds=2)
+  ├── Prosecutor  ◄── [system_msg] + [task] + [all round-1 msgs]
+  ├── Defense     ◄── [system_msg] + [task] + [all round-1 msgs] + [Prosecutor r2]
+  ├── Expert_Witness ◄── all above
+  │
+  │  FINAL
+  └── Judge  ◄── [system_msg] + [task] + [ALL specialist messages]
+      └── outputs:  ```json { verdict } ```  VERDICT_COMPLETE
+                           │
+                    parse_judge_verdict()
+                           │
+                    save_debate_transcript()   → transcripts/case_XX_transcript.md
+                           │
+                    <mode>_results.json        → results/debate_outputs/
+```
+
+#### 7. Single-LLM baseline — how it differs
+
+When `--single-llm` is passed, `run_single_llm()` is called instead. The flow is simpler:
+
+```
+_build_single_llm_prompt(case_data)
+  • issue taxonomy
+  • instruction to return the Judge JSON schema
+  • full case JSON
+
+       ▼
+Single_Evaluator.run(task=prompt)
+  • no debate, no other agents
+  • reads the case data directly
+  • outputs the same JSON schema + VERDICT_COMPLETE
+
+       ▼
+parse_judge_verdict()  →  saved to same output structure
+```
+
+The single-LLM evaluator uses the same verdict schema as the Judge, making results from both modes directly comparable.
+
 ---
 
 ## 11. `run_debate.py`
