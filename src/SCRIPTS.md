@@ -195,10 +195,12 @@ The output provides a grounded reference for:
 3. Loads `unfavorable_samples.csv`, applies the same cleaning (rows with NaN are dropped).
 4. Builds DiCE objects: `dice_ml.Data`, `dice_ml.Model(backend="sklearn")`, `dice_ml.Dice(method="genetic")`.
 5. For each clean instance, generates `TOTAL_CFS` counterfactuals with:
-   - **Actionable features only** (workclass, occupation, hours-per-week, capital-gain, capital-loss).
-   - **Box constraints** on continuous features to avoid absurd values.
+   - **Policy-defined actionable features** (`age`, `education-num`, `workclass`, `occupation`, `hours-per-week`, `capital-gain`, `capital-loss`).
+   - **Per-instance empirical box constraints** from `feature_policy.build_permitted_range()`.
+   - DiCE genetic default weights collected in `DICE_DEFAULT_GENETIC_KWARGS`.
    - Post-hoc sparsity via `posthoc_sparsity_param=0.1`.
 6. Saves a structured CSV with `row_type` (original / counterfactual), `original_index`, `cf_rank`, and `cf_confidence` (model's P(class 1) for each row) columns.
+7. Saves generation-policy metadata to `results/generation_policy.json`.
 
 ### Key parameters
 | Parameter | Value | Notes |
@@ -206,29 +208,28 @@ The output provides a grounded reference for:
 | `TOTAL_CFS` | `4` | Number of CFs per instance |
 | `DESIRED_CLASS` | `1` | Target: >50 K income |
 | `method` | `"genetic"` | Best available for sklearn backend |
-| `proximity_weight` | `1.0` | Trade-off: keep CFs close to original |
-| `diversity_weight` | `3.0` | Trade-off: diversify the set of CFs |
-| `categorical_penalty` | `1.0` | Penalty for categorical feature changes |
+| `proximity_weight` | `0.2` | DiCE genetic default: keep CFs close to original |
+| `sparsity_weight` | `0.2` | DiCE genetic default: prefer fewer feature changes |
+| `diversity_weight` | `5.0` | DiCE genetic default: diversify the set of CFs |
+| `categorical_penalty` | `0.1` | DiCE genetic default: penalty for categorical feature changes |
 | `stopping_threshold` | `0.5` | Probability threshold to accept a CF |
 | `posthoc_sparsity_param` | `0.1` | Linear sparsity post-processing |
 
 #### Actionable features
 | Feature | Rationale |
 |---------|-----------|
+| `age` | Long-term recourse horizon; may increase only |
+| `education-num` | Long-term education recourse; may increase only and must be plausible with age |
 | `workclass` | Job sector can change |
 | `occupation` | Job role can change |
 | `hours-per-week` | Working hours adjustable |
 | `capital-gain` | Financial gains can vary |
 | `capital-loss` | Financial losses can vary |
 
-Protected / immutable features (age, race, sex, native-country, education, marital-status, relationship, fnlwgt, education-num) are **frozen**.
+Frozen / excluded features (`race`, `sex`, `native-country`, `marital-status`, `relationship`, `fnlwgt`) are **not** allowed to vary. Raw `education` is excluded from model training and synchronized from `education-num` after generation as a derived display label.
 
 #### Box constraints
-| Feature | Min | Max |
-|---------|-----|-----|
-| `hours-per-week` | 20 | 50 |
-| `capital-gain` | 0 | 5 000 |
-| `capital-loss` | 0 | 5 000 |
+Box constraints are no longer fixed constants. `feature_policy.build_permitted_range()` derives per-instance ranges from the data distribution and the individual's current value, then stores them in `results/generation_policy.json`.
 
 ### Inputs / Outputs
 | | Description |
@@ -427,7 +428,7 @@ $env:PYTHONPATH="src"; python src/case_builder.py --pretty
 ### Key design decisions (vs PoC)
 - **Multi-CF schema**: prompts handle `counterfactuals[]` array with per-CF `cf_confidence`, `features_changed`, `changes_summary`.
 - **Expert Witness — no SHAP**: analyses real DiCE metrics (validity, proximity, sparsity, diversity) + domain feasibility instead of mocked SHAP values.
-- **Placeholder taxonomy**: `prompts.py` contains a default 7-label taxonomy; Ivan's finalised taxonomy will replace it.
+- **Issue taxonomy**: `prompts.py` contains the scored labels used by agents. Constraint violations are kept separate from scored issue labels.
 - **Real data**: loads `results/cases.json` (from `case_builder.py`), not mock cases.
 
 ### Environment setup
@@ -459,13 +460,12 @@ Each system message contains:
 
 The taxonomy injection looks like this at runtime:
 ```
-- immutable_feature_change: The CF changes a feature the individual cannot realistically alter (e.g. age, race, sex, native-country).
-- proxy_feature_change: The CF changes a feature that may act as a proxy for a protected attribute...
-- unrealistic_change: The CF requires an implausibly large jump in a feature value...
-- non_actionable_change: ...
+- inconsistent_work_profile: work-related edits are internally inconsistent or temporally implausible.
+- implausible_time_dependent_change: age or education_num changes violate time logic.
+- extreme_working_hours: hours_per_week reaches an unrealistic extreme or large jump.
+- unactionable_capital_shift: capital_gain or capital_loss changes are financially unrealistic.
 - too_many_changes: ...
-- low_confidence_cf: ...
-- inconsistent_changes: ...
+- fragile_counterfactual: ...
 ```
 
 #### 1. The opening task message — what the team receives

@@ -257,12 +257,13 @@ This is the main training script.
 
 1. creates output folders if needed
 2. loads the Adult dataset
-3. splits the data into train and test sets
-4. builds the preprocessing pipeline
-5. trains the model
-6. evaluates the model
-7. saves the full trained pipeline as a `.joblib` file
-8. saves detailed metrics in JSON format
+3. applies the feature policy from `src/feature_policy.py` (`education` is excluded from model inputs; `education-num` is kept)
+4. splits the data into train and test sets
+5. builds the preprocessing pipeline
+6. trains the model
+7. evaluates the model
+8. saves the full trained pipeline as a `.joblib` file
+9. saves detailed metrics in JSON format
 
 #### Why full pipelines are saved
 
@@ -284,7 +285,7 @@ Used after training to run inference with the selected main model.
 
 #### What it does
 
-1. loads the saved main model (`xgboost.joblib`)
+1. loads the saved main model (`logistic_regression.joblib`)
 2. reloads the dataset
 3. computes predictions and class probabilities
 4. extracts individuals predicted as unfavorable (`prediction = 0`)
@@ -305,13 +306,14 @@ Uses DiCE to generate counterfactual explanations with basic realism constraints
 2. reloads the dataset to define the DiCE data object
 3. loads the sampled unfavorable cases
 4. defines the outcome variable for DiCE
-5. specifies a restricted set of actionable features (e.g. workclass, occupation, hours-per-week, capital-related variables)
-6. applies box constraints (permitted_range) to avoid unrealistic values (e.g. bounded capital-gain and working hours)
-7. balances proximity vs diversity in the generation process through weighted parameters
+5. specifies the current long-term actionable feature policy: `age`, `education-num`, `workclass`, `occupation`, `hours-per-week`, `capital-gain`, and `capital-loss`
+6. applies per-instance empirical box constraints through `permitted_range`
+7. uses DiCE genetic defaults for proximity, sparsity, diversity, categorical penalty, and stopping threshold
 8. applies post-hoc sparsity to limit the number of changes per counterfactual
 9. generates multiple counterfactuals per instance
 10. stores both the original instance and its counterfactuals in a structured format (with row_type and cf_rank)
-11. saves them to `results/counterfactuals.csv`
+11. saves counterfactuals to `results/counterfactuals.csv`
+12. saves the generation policy metadata to `results/generation_policy.json`
 
 This script is the first bridge between the predictive pipeline and the future evaluation framework.
 
@@ -544,19 +546,23 @@ For an instance predicted as class `0`, DiCE searches for alternative values of 
 
 ### Current allowed features to vary
 
-The first implementation allowed changes on features such as:
+The current policy is defined in `src/feature_policy.py`. It excludes raw `education` from model training because it duplicates the ordinal signal in `education-num`, then allows DiCE to vary:
+
+- `age` (increase only, bounded horizon)
+- `education-num` (increase only, checked against age increase)
 - `workclass`
-- `education`
 - `occupation`
 - `hours-per-week`
 - `capital-gain`
 - `capital-loss`
 
-This was intentionally permissive in order to obtain first working counterfactuals.
+Frozen features are `fnlwgt`, `marital-status`, `relationship`, `race`, `sex`, and `native-country`.
 
-### Why this first version is useful
+Raw `education` is excluded from model training and is not directly mutable by DiCE. It remains in result artifacts only as a derived display label synchronized from `education-num`.
 
-Even though the generated counterfactuals are not always realistic, they are already valuable because they reveal important model behavior.
+### Why this policy is useful
+
+The generated counterfactuals may still contain unrealistic recommendations, but those failures are now explicit evidence for the evaluation layer rather than hidden assumptions.
 
 For example, the generated explanations showed that:
 - the model strongly exploits `capital-gain`
@@ -582,16 +588,9 @@ Examples observed in the first outputs:
 - implausible feature combinations
 - extreme changes in work hours
 
-### 12.2 Actionability constraints are still basic
+### 12.2 Actionability constraints are policy-driven but still limited
 
-The first version does not yet fully enforce which features should or should not be changed.
-
-For example, in a fairness-sensitive setting, features like:
-- `race`
-- `sex`
-- `age`
-
-should typically be protected or fixed.
+Feature mutability now follows `src/feature_policy.py`. Protected or non-actionable features such as `race`, `sex`, `native-country`, and `fnlwgt` are frozen. Raw `education` is a derived display field synchronized from `education-num`. `age` and `education-num` are treated as long-term mutable features, but deterministic heuristics flag impossible time logic, such as decreasing age or increasing education without enough age increase.
 
 ### 12.3 Counterfactual metric computation is not finalized
 
