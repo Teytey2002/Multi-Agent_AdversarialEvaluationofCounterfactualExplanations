@@ -1,0 +1,299 @@
+{
+  "policy_name": "long_term_actionable_v1",
+  "model_excluded_features": [
+    "education"
+  ],
+  "model_feature_columns": [
+    "age",
+    "workclass",
+    "fnlwgt",
+    "education-num",
+    "marital-status",
+    "occupation",
+    "relationship",
+    "race",
+    "sex",
+    "capital-gain",
+    "capital-loss",
+    "hours-per-week",
+    "native-country"
+  ],
+  "features_to_vary": [
+    "age",
+    "education-num",
+    "workclass",
+    "occupation",
+    "hours-per-week",
+    "capital-gain",
+    "capital-loss"
+  ],
+  "frozen_features": [
+    "fnlwgt",
+    "marital-status",
+    "relationship",
+    "race",
+    "sex",
+    "native-country"
+  ],
+  "derived_display_features": [
+    "education"
+  ],
+  "education_num_to_label": {
+    "1": "Preschool",
+    "2": "1st-4th",
+    "3": "5th-6th",
+    "4": "7th-8th",
+    "5": "9th",
+    "6": "10th",
+    "7": "11th",
+    "8": "12th",
+    "9": "HS-grad",
+    "10": "Some-college",
+    "11": "Assoc-voc",
+    "12": "Assoc-acdm",
+    "13": "Bachelors",
+    "14": "Masters",
+    "15": "Prof-school",
+    "16": "Doctorate"
+  },
+  "dice_genetic_kwargs": {
+    "proximity_weight": 0.2,
+    "sparsity_weight": 0.2,
+    "diversity_weight": 5.0,
+    "categorical_penalty": 0.1,
+    "stopping_threshold": 0.5,
+    "posthoc_sparsity_param": 0.1,
+    "posthoc_sparsity_algorithm": "binary"
+  },
+  "causal_checks": {
+    "age_may_only_increase": true,
+    "education_num_may_only_increase": true,
+    "education_num_increase_requires_age_increase": true,
+    "min_age_years_per_education_num_level": 1,
+    "education_label_synchronized_from_education_num": true
+  },
+  "total_cfs": 4,
+  "desired_class": 1,
+  "per_instance_permitted_range": {
+    "0": {
+      "age": [
+        48.0,
+        56.0
+      ],
+      "education-num": [
+        9.0,
+        13.0
+      ],
+      "hours-per-week": [
+        30.0,
+        55.0
+      ],
+      "capital-gain": [
+        0.0,
+        14084.0
+      ],
+      "capital-loss": [
+        0.0,
+        2415.0
+      ]
+    },
+    "1": {
+      "age": [
+        31.0,
+        39.0
+      ],
+      "education-num": [
+        10.0,
+        14.0
+      ],
+      "hours-per-week": [
+        40.0,
+        60.0
+      ],
+      "capital-gain": [
+        0.0,
+        14084.0
+      ],
+      "capital-loss": [
+        0.0,
+        2415.0
+      ]
+    },
+    "2": {
+      "age": [
+        29.0,
+        37.0
+      ],
+      "education-num": [
+        13.0,
+        16.0
+      ],
+      "hours-per-week": [
+        45.0,
+        60.0
+      ],
+      "capital-gain": [
+        0.0,
+        14084.0
+      ],
+      "capital-loss": [
+        0.0,
+        2415.0
+      ]
+    },
+    "3": {
+      "age": [
+        68.0,
+        76.0
+      ],
+      "education-num": [
+        14.0,
+        16.0
+      ],
+      "hours-per-week": [
+        20.0,
+        35.0
+      ],
+      "capital-gain": [
+        0.0,
+        14084.0
+      ],
+      "capital-loss": [
+        0.0,
+        2415.0
+      ]
+    },
+    "4": {
+      "age": [
+        36.0,
+        44.0
+      ],
+      "education-num": [
+        9.0,
+        13.0
+      ],
+      "hours-per-week": [
+        30.0,
+        55.0
+      ],
+      "capital-gain": [
+        0.0,
+        14084.0
+      ],
+      "capital-loss": [
+        0.0,
+        2415.0
+      ]
+    },
+    "5": {
+      "age": [
+        32.0,
+        40.0
+      ],
+      "education-num": [
+        10.0,
+        14.0
+      ],
+      "hours-per-week": [
+        40.0,
+        60.0
+      ],
+      "capital-gain": [
+        0.0,
+        14084.0
+      ],
+      "capital-loss": [
+        0.0,
+        2415.0
+      ]
+    },
+    "6": {
+      "age": [
+        39.0,
+        47.0
+      ],
+      "education-num": [
+        12.0,
+        16.0
+      ],
+      "hours-per-week": [
+        45.0,
+        60.0
+      ],
+      "capital-gain": [
+        0.0,
+        14084.0
+      ],
+      "capital-loss": [
+        0.0,
+        2415.0
+      ]
+    },
+    "7": {
+      "age": [
+        37.0,
+        45.0
+      ],
+      "education-num": [
+        13.0,
+        16.0
+      ],
+      "hours-per-week": [
+        32.0,
+        57.0
+      ],
+      "capital-gain": [
+        0.0,
+        14084.0
+      ],
+      "capital-loss": [
+        0.0,
+        2415.0
+      ]
+    },
+    "8": {
+      "age": [
+        28.0,
+        36.0
+      ],
+      "education-num": [
+        7.0,
+        11.0
+      ],
+      "hours-per-week": [
+        50.0,
+        60.0
+      ],
+      "capital-gain": [
+        0.0,
+        14084.0
+      ],
+      "capital-loss": [
+        0.0,
+        2415.0
+      ]
+    },
+    "9": {
+      "age": [
+        24.0,
+        32.0
+      ],
+      "education-num": [
+        10.0,
+        14.0
+      ],
+      "hours-per-week": [
+        30.0,
+        55.0
+      ],
+      "capital-gain": [
+        0.0,
+        14084.0
+      ],
+      "capital-loss": [
+        0.0,
+        2415.0
+      ]
+    }
+  }
+}
