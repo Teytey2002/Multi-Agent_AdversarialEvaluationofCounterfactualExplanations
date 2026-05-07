@@ -33,6 +33,11 @@ from typing import Any, Callable
 import numpy as np
 import pandas as pd
 
+from feature_policy import (
+    FEATURE_ALIASES,
+    RAW_FEATURE_COLUMNS,
+    is_synchronized_education_label_change,
+)
 from heuristics import compute_heuristic_metrics
 
 
@@ -44,36 +49,13 @@ UNFAVORABLE_PATH = RESULTS_DIR / "unfavorable_samples.csv"
 COUNTERFACTUALS_PATH = RESULTS_DIR / "counterfactuals.csv"
 METRICS_PATH = RESULTS_DIR / "cf_metrics_per_instance.csv"
 MODEL_METRICS_PATH = RESULTS_DIR / "logistic_regression_metrics.json"
+GENERATION_POLICY_PATH = RESULTS_DIR / "generation_policy.json"
 OUTPUT_PATH = RESULTS_DIR / "cases.json"
 
-# Features that the pipeline declares as immutable during CF generation
-IMMUTABLE_FEATURES = [
-    "age", "fnlwgt", "education", "education-num",
-    "marital-status", "relationship", "race", "sex", "native-country",
-]
-
 # The 14 raw features in the Adult Income dataset
-FEATURE_COLS = [
-    "age", "workclass", "fnlwgt", "education", "education-num",
-    "marital-status", "occupation", "relationship", "race", "sex",
-    "capital-gain", "capital-loss", "hours-per-week", "native-country",
-]
+FEATURE_COLS = list(RAW_FEATURE_COLUMNS)
 
 LABEL_MAP = {0: "<=50K", 1: ">50K"}
-
-# Column aliases to reconcile Adult CSV names (hyphenated) with code variants
-# used in heuristics and taxonomy notes (underscored).
-# MUST map ALL hyphenated feature names from FEATURE_COLS to maintain consistency
-# across the case_builder → heuristics pipeline.
-FEATURE_ALIASES = {
-    "education-num": "education_num",
-    "marital-status": "marital_status",
-    "capital-gain": "capital_gain",
-    "capital-loss": "capital_loss",
-    "hours-per-week": "hours_per_week",
-    "native-country": "native_country",
-}
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -108,6 +90,8 @@ def _compute_changes(original: dict, cf: dict) -> tuple[list[str], dict]:
         orig_val = original.get(feat)
         cf_val = cf.get(feat)
         if orig_val != cf_val:
+            if feat == "education" and is_synchronized_education_label_change(original, cf):
+                continue
             # Convert hyphenated feature name to underscored for consistency
             canonical_feat = FEATURE_ALIASES.get(feat, feat)
             changed.append(canonical_feat)
@@ -151,6 +135,29 @@ def _load_model_metrics() -> dict[str, Any]:
     }
 
 
+def _load_generation_policy() -> dict[str, Any]:
+    """Load DiCE generation-policy metadata when available."""
+    if not GENERATION_POLICY_PATH.exists():
+        return {}
+    with open(GENERATION_POLICY_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _policy_context_for_case(policy: dict[str, Any], case_id: int) -> dict[str, Any]:
+    """Return compact policy metadata relevant to one case."""
+    if not policy:
+        return {}
+
+    per_instance_range = policy.get("per_instance_permitted_range", {})
+    context = {
+        key: value
+        for key, value in policy.items()
+        if key != "per_instance_permitted_range"
+    }
+    context["permitted_range"] = per_instance_range.get(str(case_id), {})
+    return context
+
+
 # ---------------------------------------------------------------------------
 # Core builder
 # ---------------------------------------------------------------------------
@@ -180,7 +187,9 @@ def build_cases(
     cf_all = pd.read_csv(COUNTERFACTUALS_PATH)
     metrics = pd.read_csv(METRICS_PATH)
     model_info = _load_model_metrics()
+    generation_policy = _load_generation_policy()
     heuristic_fn = _load_heuristic_fn()
+    per_instance_ranges = generation_policy.get("per_instance_permitted_range", {})
 
     # Index metrics by original_index for quick lookup
     metrics_map: dict[int, dict] = {}
@@ -196,6 +205,8 @@ def build_cases(
 
     for i, srow in samples.iterrows():
         original_features = _row_to_features(srow)
+        case_policy = _policy_context_for_case(generation_policy, int(i))
+        permitted_range = per_instance_ranges.get(str(i), {})
 
         # Prediction context from predict.py
         prediction_label = LABEL_MAP.get(int(srow["prediction"]), str(srow["prediction"]))
@@ -219,6 +230,7 @@ def build_cases(
                 _with_aliases(original_features),
                 _with_aliases(cf_features),
                 cf_confidence=cf_confidence,
+                permitted_range=permitted_range,
             )
             for issue in heuristic_metrics.get("flagged_issues", []):
                 aggregate_issue_labels.add(str(issue))
@@ -253,6 +265,7 @@ def build_cases(
             "is_false_negative": bool(srow["is_false_negative"]),
             "counterfactuals": counterfactuals,
             "metrics": metrics_map.get(int(i), {}),
+            "generation_policy": case_policy,
             "heuristic_summary": {
                 "flagged_issues_union": sorted(aggregate_issue_labels),
                 "constraint_violations_union": sorted(aggregate_constraint_violations),
@@ -296,7 +309,7 @@ def main() -> None:
     with open(out, "w", encoding="utf-8") as f:
         json.dump(cases, f, indent=2 if args.pretty else None, ensure_ascii=False)
 
-    print(f"Built {len(cases)} cases → {out}")
+    print(f"Built {len(cases)} cases -> {out}")
     for c in cases:
         n_cf = len(c["counterfactuals"])
         print(f"  case {c['case_id']:>2}: {n_cf} CFs, "

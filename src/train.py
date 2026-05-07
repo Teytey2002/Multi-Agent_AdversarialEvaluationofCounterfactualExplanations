@@ -4,6 +4,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
 from data_loader import load_adult_dataset
+from feature_policy import POLICY_NAME, select_model_features
 from preprocessing import build_preprocessor
 from models import get_model
 from utils import ensure_dir, evaluate_model, save_model, save_metrics
@@ -24,14 +25,17 @@ def train():
 
     # Load data
     X, y = load_adult_dataset()
+    X_model = select_model_features(X)
 
     print(f"Dataset loaded: X shape = {X.shape}, y shape = {y.shape}")
+    print(f"Feature policy: {POLICY_NAME}")
+    print(f"Model input shape after policy filtering: {X_model.shape}")
     print("\nTarget distribution:")
     print(y.value_counts(normalize=True))
 
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(
-        X,
+        X_model,
         y,
         test_size=TEST_SIZE,
         random_state=RANDOM_STATE,
@@ -39,7 +43,7 @@ def train():
     )
 
     # Build preprocessor once
-    preprocessor = build_preprocessor(X)
+    preprocessor = build_preprocessor(X_model)
 
     # Get model
     model_name, classifier = get_model(random_state=RANDOM_STATE)

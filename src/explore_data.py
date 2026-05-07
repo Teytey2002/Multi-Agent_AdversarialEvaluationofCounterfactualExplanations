@@ -41,6 +41,16 @@ def _describe_categorical(series) -> dict:
 def _describe_numerical(series) -> dict:
     """Summarise a numerical feature."""
     clean = series.dropna()
+    percentiles = {
+        f"p{int(q * 100):02d}": round(float(clean.quantile(q)), 6)
+        for q in [0.01, 0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95, 0.99]
+    }
+    nonzero = clean[clean > 0]
+    nonzero_percentiles = {
+        f"p{int(q * 100):02d}": round(float(nonzero.quantile(q)), 6)
+        for q in [0.05, 0.25, 0.50, 0.75, 0.90, 0.95, 0.99]
+    } if len(nonzero) > 0 else {}
+
     return {
         "type": "numerical",
         "n_unique": int(clean.nunique()),
@@ -49,6 +59,8 @@ def _describe_numerical(series) -> dict:
         "mean": round(float(clean.mean()), 2),
         "median": float(clean.median()),
         "std": round(float(clean.std()), 2),
+        "percentiles": percentiles,
+        "nonzero_percentiles": nonzero_percentiles,
     }
 
 
@@ -88,7 +100,7 @@ def main() -> None:
     with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
         json.dump(catalog, f, indent=2, ensure_ascii=False)
 
-    print(f"Feature catalog saved → {OUTPUT_PATH}")
+    print(f"Feature catalog saved -> {OUTPUT_PATH}")
     print(f"Features catalogued: {len(catalog) - 1} (+ target)\n")
 
     for name, info in catalog.items():

@@ -31,6 +31,82 @@ ALL_AGENT_NAMES  = SPECIALIST_NAMES + ["Judge"]
 # Prompt builders
 # ---------------------------------------------------------------------------
 
+def _compact_evidence(evidence: dict[str, Any]) -> dict[str, Any]:
+    """Keep numeric evidence compact enough for low-token smoke tests."""
+    compact: dict[str, Any] = {}
+    for label, items in evidence.items():
+        compact_items = []
+        for item in items[:3]:
+            if isinstance(item, dict):
+                compact_items.append({
+                    key: value
+                    for key, value in item.items()
+                    if key != "reason"
+                })
+            else:
+                compact_items.append(item)
+        compact[label] = compact_items
+    return compact
+
+
+def _compact_heuristic_metrics(metrics: dict[str, Any]) -> dict[str, Any]:
+    """Return the heuristic fields agents need without verbose repeated prose."""
+    return {
+        "changed_features": metrics.get("changed_features", []),
+        "actionable_sparsity": metrics.get("actionable_sparsity"),
+        "burden_count": metrics.get("burden_count"),
+        "flagged_issues": metrics.get("flagged_issues", []),
+        "constraint_violations": metrics.get("constraint_violations", []),
+        "issue_evidence": _compact_evidence(metrics.get("issue_evidence", {})),
+        "constraint_evidence": _compact_evidence(metrics.get("constraint_evidence", {})),
+    }
+
+
+def _compact_case_for_prompt(case_data: dict[str, Any]) -> dict[str, Any]:
+    """
+    Drop redundant full CF feature rows before sending cases to an LLM.
+
+    The original case JSON stores full feature dictionaries for every CF plus
+    repeated explanatory evidence. That is useful as an artifact, but it exceeds
+    small free-tier model limits. The prompt only needs the original row, per-CF
+    changes, confidence, metrics, and heuristic flags/evidence.
+    """
+    counterfactuals = []
+    for cf in case_data.get("counterfactuals", []):
+        counterfactuals.append({
+            "cf_rank": cf.get("cf_rank"),
+            "cf_confidence": cf.get("cf_confidence"),
+            "features_changed": cf.get("features_changed", []),
+            "changes_summary": cf.get("changes_summary", {}),
+            "heuristic_metrics": _compact_heuristic_metrics(
+                cf.get("heuristic_metrics", {})
+            ),
+        })
+
+    heuristic_summary = case_data.get("heuristic_summary", {})
+
+    return {
+        "case_id": case_data.get("case_id"),
+        "domain": case_data.get("domain"),
+        "model_info": case_data.get("model_info", {}),
+        "original": case_data.get("original", {}),
+        "prediction": case_data.get("prediction"),
+        "prediction_confidence": case_data.get("prediction_confidence"),
+        "true_label": case_data.get("true_label"),
+        "is_false_negative": case_data.get("is_false_negative"),
+        "generation_policy": case_data.get("generation_policy", {}),
+        "metrics": case_data.get("metrics", {}),
+        "heuristic_summary": {
+            "flagged_issues_union": heuristic_summary.get("flagged_issues_union", []),
+            "constraint_violations_union": heuristic_summary.get(
+                "constraint_violations_union", []
+            ),
+        },
+        "counterfactuals": counterfactuals,
+        "ground_truth_issues": case_data.get("ground_truth_issues", []),
+    }
+
+
 def _build_case_prompt(case_data: dict[str, Any], max_rounds: int) -> str:
     """
     Build the opening task prompt for a multi-agent debate.
@@ -42,6 +118,7 @@ def _build_case_prompt(case_data: dict[str, Any], max_rounds: int) -> str:
     - ``changes_summary`` per CF shows {feature: {from, to}}.
     """
     issue_notes = get_issue_guidance()
+    prompt_case = _compact_case_for_prompt(case_data)
 
     # Build a concise human-readable summary on top of the raw JSON.
     original = case_data.get("original", {})
@@ -83,9 +160,9 @@ Debate structure:
 - The Judge should only speak when selected at the end.
 - Base ALL arguments on the real data below — do not invent additional evidence.
 
-Full case data:
+Case data:
 ```json
-{json.dumps(case_data, indent=2)}
+{json.dumps(prompt_case, indent=2)}
 ```
 """.strip()
 
@@ -93,6 +170,7 @@ Full case data:
 def _build_single_llm_prompt(case_data: dict[str, Any]) -> str:
     """Build the task prompt for the single-LLM baseline evaluator."""
     issue_notes = get_issue_guidance()
+    prompt_case = _compact_case_for_prompt(case_data)
 
     return f"""
 Review the following counterfactual explanations generated for an income-prediction
@@ -109,7 +187,7 @@ Return the exact JSON schema requested in your system message.
 
 Case data:
 ```json
-{json.dumps(case_data, indent=2)}
+{json.dumps(prompt_case, indent=2)}
 ```
 """.strip()
 

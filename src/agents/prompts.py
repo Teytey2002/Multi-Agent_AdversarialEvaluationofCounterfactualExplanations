@@ -14,6 +14,16 @@ ISSUE_TAXONOMY: dict[str, str] = {
     ),
 
     # ---------------------------------------------------------------------------
+    # Time-Dependent Plausibility
+    # ---------------------------------------------------------------------------
+    "implausible_time_dependent_change": (
+        "The counterfactual proposes an impossible or poorly justified time-dependent "
+        "change, such as decreasing age, decreasing education_num, increasing "
+        "education_num without enough age increase, or using non-integer age or "
+        "education_num values."
+    ),
+
+    # ---------------------------------------------------------------------------
     # Working-Hours Realism
     # ---------------------------------------------------------------------------
     "extreme_working_hours": (
@@ -66,6 +76,12 @@ CONSTRAINT_VIOLATION_GUIDANCE: dict[str, str] = {
         "This should be treated as a constraint or pipeline violation."
     ),
 }
+
+
+def get_valid_issue_labels() -> set[str]:
+    """Return the scored taxonomy labels accepted in Judge verdicts."""
+    return set(ISSUE_TAXONOMY)
+
 
 def get_issue_guidance() -> str:
     """Format the scored taxonomy as a bullet list for injection into prompts."""

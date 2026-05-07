@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 
 from data_loader import load_adult_dataset
+from feature_policy import select_model_features
 
 
 MODEL_PATH = "models/logistic_regression.joblib"
@@ -22,10 +23,11 @@ def main():
 
     # Load data
     X, y = load_adult_dataset()
+    X_model = select_model_features(X)
 
     # Predict
-    preds = model.predict(X)
-    probs = model.predict_proba(X)[:, 1]
+    preds = model.predict(X_model)
+    probs = model.predict_proba(X_model)[:, 1]
 
     df = X.copy()
     df["prediction"] = preds

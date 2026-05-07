@@ -1,15 +1,28 @@
 import os
+import json
 import numpy as np
 import pandas as pd
 import joblib
 import dice_ml
 
 from data_loader import load_adult_dataset
+from feature_policy import (
+    ACTIONABLE_FEATURES,
+    CONTINUOUS_FEATURES,
+    DICE_DEFAULT_GENETIC_KWARGS,
+    POLICY_NAME,
+    build_permitted_range,
+    generation_policy_metadata,
+    select_model_features,
+    sync_education_label,
+    sync_education_labels,
+)
 
 
 MODEL_PATH = "models/logistic_regression.joblib"
 SAMPLE_PATH = "results/unfavorable_samples.csv"
 OUTPUT_PATH = "results/counterfactuals.csv"
+POLICY_OUTPUT_PATH = "results/generation_policy.json"
 
 # Nombre de CFs par individu
 TOTAL_CFS = 4
@@ -30,31 +43,20 @@ def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
 def get_actionable_features():
     """
-    Features allowed to change.
-    Based on the paper's feasibility/actionability spirit:
-    - keep protected or clearly non-actionable features fixed
-    - avoid education for now, because changing education without
-      allowing age to evolve is causally questionable
+    Features allowed to change under the current long-term recourse policy.
+
+    ``education`` is excluded from training and generation because it duplicates
+    ``education-num``.  ``age`` and ``education-num`` may increase, but their
+    causal consistency is validated by deterministic heuristics after generation.
     """
-    return [
-        "workclass",
-        "occupation",
-        "hours-per-week",
-        "capital-gain",
-        "capital-loss"
-    ]
+    return list(ACTIONABLE_FEATURES)
 
 
-def get_permitted_range():
+def get_permitted_range(data: pd.DataFrame, instance: pd.DataFrame):
     """
-    Box constraints inspired by the paper's user constraints idea.
-    These ranges are intentionally conservative to avoid absurd CFs.
+    Build per-instance box constraints from empirical dataset percentiles.
     """
-    return {
-        "hours-per-week": [20, 50],
-        "capital-gain": [0, 5000],
-        "capital-loss": [0, 5000]
-    }
+    return build_permitted_range(data, instance.iloc[0])
 
 
 def build_dice_objects(model, data):
@@ -72,12 +74,7 @@ def build_dice_objects(model, data):
     d = dice_ml.Data(
         dataframe=data,
         continuous_features=[
-            "age",
-            "fnlwgt",
-            "education-num",
-            "capital-gain",
-            "capital-loss",
-            "hours-per-week"
+            *CONTINUOUS_FEATURES
         ],
         outcome_name="income"
     )
@@ -104,12 +101,7 @@ def generate_for_instance(exp, instance, features_to_vary, permitted_range):
         desired_class=DESIRED_CLASS,
         features_to_vary=features_to_vary,
         permitted_range=permitted_range,
-        proximity_weight=1.0,
-        diversity_weight=3.0,
-        categorical_penalty=1.0,
-        stopping_threshold=0.5,
-        posthoc_sparsity_param=0.1,
-        posthoc_sparsity_algorithm="linear",
+        **DICE_DEFAULT_GENETIC_KWARGS,
         verbose=False
     )
 
@@ -123,24 +115,25 @@ def format_results(original_row, cf_df, original_index, model, feature_cols):
     """
     rows = []
 
-    original_out = original_row.copy()
+    original_out = sync_education_label(original_row.copy())
     original_out["income"] = 0
     original_out["original_index"] = original_index
     original_out["row_type"] = "original"
     original_out["cf_rank"] = -1
     # confidence the model assigns to the original (class 1 proba)
-    orig_df = pd.DataFrame([original_row[feature_cols]])
+    orig_df = select_model_features(pd.DataFrame([original_row[feature_cols]]))
     original_out["cf_confidence"] = float(model.predict_proba(orig_df)[:, 1][0])
     rows.append(original_out)
 
     if cf_df is not None and not cf_df.empty:
+        cf_df = sync_education_labels(cf_df)
         for rank, (_, row) in enumerate(cf_df.iterrows()):
             out = row.copy()
             out["original_index"] = original_index
             out["row_type"] = "counterfactual"
             out["cf_rank"] = rank
             # confidence the model assigns to this CF (class 1 proba)
-            cf_input = pd.DataFrame([row[feature_cols]])
+            cf_input = select_model_features(pd.DataFrame([row[feature_cols]]))
             out["cf_confidence"] = float(model.predict_proba(cf_input)[:, 1][0])
             rows.append(out)
 
@@ -149,6 +142,9 @@ def format_results(original_row, cf_df, original_index, model, feature_cols):
 
 def main():
     os.makedirs("results", exist_ok=True)
+    policy_metadata = generation_policy_metadata()
+    policy_metadata["total_cfs"] = TOTAL_CFS
+    policy_metadata["desired_class"] = DESIRED_CLASS
 
     # =========================
     # Load model
@@ -190,13 +186,12 @@ def main():
     # Constraints
     # =========================
     features_to_vary = get_actionable_features()
-    permitted_range = get_permitted_range()
 
+    print(f"\nGeneration policy: {POLICY_NAME}")
     print("\nFeatures allowed to vary:")
     print(features_to_vary)
-
-    print("\nPermitted ranges:")
-    print(permitted_range)
+    print("\nDiCE genetic parameters:")
+    print(DICE_DEFAULT_GENETIC_KWARGS)
 
     # =========================
     # Generate CFs
@@ -213,6 +208,12 @@ def main():
         print(instance.to_string(index=False))
 
         try:
+            permitted_range = get_permitted_range(data, instance)
+            policy_metadata.setdefault("per_instance_permitted_range", {})[str(i)] = permitted_range
+
+            print("\nPermitted ranges:")
+            print(permitted_range)
+
             cf = generate_for_instance(
                 exp=exp,
                 instance=instance,
@@ -232,6 +233,7 @@ def main():
                     feature_cols=feature_cols
                 )
             else:
+                cf_df = sync_education_labels(cf_df)
                 print("\nGenerated counterfactuals:")
                 print(cf_df.to_string(index=False))
 
@@ -263,8 +265,11 @@ def main():
     # =========================
     final_df = pd.concat(all_results, ignore_index=True)
     final_df.to_csv(OUTPUT_PATH, index=False)
+    with open(POLICY_OUTPUT_PATH, "w", encoding="utf-8") as f:
+        json.dump(policy_metadata, f, indent=2)
 
     print(f"\nSaved improved counterfactuals to: {OUTPUT_PATH}")
+    print(f"Saved generation policy metadata to: {POLICY_OUTPUT_PATH}")
 
 
 if __name__ == "__main__":

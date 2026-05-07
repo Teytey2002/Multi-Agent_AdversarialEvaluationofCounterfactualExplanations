@@ -178,10 +178,10 @@ def main() -> None:
 
     for idx, case in enumerate(cases):
         if idx > 0 and delay > 0:
-            print(f"  … waiting {delay}s for rate-limit cooldown …")
+            print(f"  ... waiting {delay}s for rate-limit cooldown ...")
             time.sleep(delay)
 
-        print(f"{'─'*40} Case {case['case_id']} {'─'*40}")
+        print(f"{'-'*40} Case {case['case_id']} {'-'*40}")
         try:
             if args.single_llm:
                 result = run_single_llm(
@@ -232,7 +232,7 @@ def main() -> None:
                 "match":        "yes" if match else "no",
                 "cost":         f"${cost_usd:.6f}",
             })
-            print(f"  → {_format_verdict(verdict)}")
+            print(f"  -> {_format_verdict(verdict)}")
 
         except Exception as exc:
             failures += 1
@@ -250,7 +250,7 @@ def main() -> None:
                 "match":        "no",
                 "cost":         "n/a",
             })
-            print(f"  ✗ FAILED: {err}")
+            print(f"  FAILED: {err}")
 
     # Summary metrics
     summary = compute_agreement(verdicts, gt_lists)
@@ -280,7 +280,7 @@ def main() -> None:
     latest_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     # Print summary table
-    print(f"\n{'═'*80}")
+    print(f"\n{'='*80}")
     _print_table(table_rows)
     print()
     print(f"Detection rate:    {summary['detection_rate']:.1f}%")
