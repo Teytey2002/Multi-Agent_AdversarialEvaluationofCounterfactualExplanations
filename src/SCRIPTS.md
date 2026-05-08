@@ -421,13 +421,13 @@ $env:PYTHONPATH="src"; python src/case_builder.py --pretty
 |-------|------|
 | **Prosecutor** | Attacks CF quality — fairness, feasibility, actionability, low confidence |
 | **Defense** | Defends useful CFs, narrows claims, highlights actionable features |
-| **Expert\_Witness** | Technical analysis of real DiCE metrics, confidence scores, feature-change feasibility (**no SHAP**) |
+| **Expert\_Witness** | Technical analysis of real DiCE metrics, confidence scores, deterministic heuristic evidence, and feature-change feasibility |
 | **Judge** | Synthesises debate → structured JSON verdict (`fair` / `unfair` / `ambiguous`) |
 | **Single\_Evaluator** | Same task as Judge but without a debate (baseline comparison) |
 
 ### Key design decisions (vs PoC)
 - **Multi-CF schema**: prompts handle `counterfactuals[]` array with per-CF `cf_confidence`, `features_changed`, `changes_summary`.
-- **Expert Witness — no SHAP**: analyses real DiCE metrics (validity, proximity, sparsity, diversity) + domain feasibility instead of mocked SHAP values.
+- **Expert Witness evidence**: analyses real DiCE metrics (validity, proximity, sparsity, diversity), confidence scores, and deterministic heuristic evidence instead of inventing quantitative evidence.
 - **Issue taxonomy**: `prompts.py` contains the scored labels used by agents. Constraint violations are kept separate from scored issue labels.
 - **Real data**: loads `results/cases.json` (from `case_builder.py`), not mock cases.
 

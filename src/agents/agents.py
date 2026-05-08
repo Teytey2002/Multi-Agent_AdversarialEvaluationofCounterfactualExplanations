@@ -4,7 +4,7 @@ Agent definitions for the multi-agent adversarial debate.
 Four debate agents:
     Prosecutor    — attacks CF quality (fairness, feasibility, actionability)
     Defense       — defends CF usefulness, narrows claims
-    Expert_Witness — provides technical analysis of real DiCE metrics (no SHAP)
+    Expert_Witness — provides technical analysis of real DiCE metrics and heuristic evidence
     Judge         — synthesises and delivers structured JSON verdict
 
 One baseline agent:

@@ -74,7 +74,7 @@ The implemented pipeline currently follows the steps below:
 7. **Run inference** on the dataset and identify unfavorable individuals.
 8. **Sample a few unfavorable cases** and export them.
 9. **Generate counterfactual explanations** for those cases using DiCE.
-10. **Prepare the project for the next stages**: counterfactual metrics, SHAP analysis, and multi-agent evaluation.
+10. **Prepare the project for the next stages**: counterfactual metrics, deterministic heuristic evidence, and multi-agent evaluation.
 
 In the current version, **XGBoost** is used as the main predictive model because it achieved the best overall performance among the three trained classifiers.
 
@@ -154,7 +154,7 @@ Gradient boosted decision trees.
 
 **Limitations**:
 - more complex than logistic regression
-- explanations may need dedicated tools such as SHAP
+- explanations require additional model-specific tooling and are not part of the current evaluation design
 
 ---
 
@@ -274,8 +274,8 @@ Each saved model contains both:
 This is very convenient for later stages because the same object can be reused directly for:
 - prediction
 - probability estimation
-- SHAP integration
 - counterfactual generation
+- metric and heuristic evidence generation
 
 ---
 
@@ -441,7 +441,6 @@ dice-ml
 ```
 
 Depending on the next steps, additional packages will later be added, such as:
-- `shap`
 - `matplotlib`
 - `streamlit`
 - `crewai` or `autogen`
@@ -596,9 +595,9 @@ Feature mutability now follows `src/feature_policy.py`. Protected or non-actiona
 
 The first metric script needs to be revised so that each generated counterfactual is compared against its correct original instance.
 
-### 12.4 Explainability integration not yet implemented
+### 12.4 Metric evidence integration
 
-SHAP is planned but not yet added in the current stage.
+The evaluation layer is designed to receive calculated counterfactual metrics and deterministic heuristic evidence from the Python pipeline. The LLM agents should reason over those computed values rather than generating their own quantitative evidence.
 
 ---
 
@@ -625,14 +624,14 @@ Build a robust metric module computing:
 
 This will form the basis of the **metrics-only baseline** and part of the **Expert Witness** evidence.
 
-### 13.3 Add SHAP explainability
+### 13.3 Strengthen metric evidence
 
-Use SHAP to identify which features most influence each model decision.
+Extend the calculated evidence passed to the agents so each verdict is grounded in pipeline outputs.
 
-This will provide feature-level evidence such as:
-- which variables drive the original negative prediction
-- whether the counterfactual changes the most influential variables
-- whether a suggested change is aligned with the model’s reasoning
+This evidence can include:
+- per-counterfactual validity, proximity, sparsity, diversity, and confidence
+- deterministic issue labels and supporting numeric thresholds from `heuristics.py`
+- generation-policy context such as permitted ranges and frozen-feature checks
 
 ### 13.4 Build the multi-agent evaluation framework
 
