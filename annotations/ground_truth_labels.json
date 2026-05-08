@@ -1,0 +1,240 @@
+{
+  "schema_version": "1.0",
+  "created_at": "2026-05-08",
+  "annotation_status": "initial_codex_human_perspective_draft_for_team_review",
+  "taxonomy_labels": [
+    "extreme_working_hours",
+    "inconsistent_work_profile",
+    "implausible_time_dependent_change",
+    "unactionable_capital_shift",
+    "too_many_changes",
+    "fragile_counterfactual"
+  ],
+  "cases": {
+    "0": {
+      "ground_truth_issues": [
+        "fragile_counterfactual",
+        "implausible_time_dependent_change",
+        "inconsistent_work_profile",
+        "too_many_changes",
+        "unactionable_capital_shift"
+      ],
+      "ground_truth_by_cf": {
+        "0": [
+          "fragile_counterfactual",
+          "inconsistent_work_profile",
+          "too_many_changes",
+          "unactionable_capital_shift"
+        ],
+        "1": [
+          "implausible_time_dependent_change",
+          "inconsistent_work_profile",
+          "too_many_changes",
+          "unactionable_capital_shift"
+        ],
+        "2": [
+          "inconsistent_work_profile",
+          "too_many_changes",
+          "unactionable_capital_shift"
+        ],
+        "3": [
+          "implausible_time_dependent_change",
+          "inconsistent_work_profile",
+          "too_many_changes",
+          "unactionable_capital_shift"
+        ]
+      }
+    },
+    "1": {
+      "ground_truth_issues": [
+        "fragile_counterfactual",
+        "implausible_time_dependent_change"
+      ],
+      "ground_truth_by_cf": {
+        "0": [],
+        "1": [
+          "fragile_counterfactual"
+        ],
+        "2": [
+          "fragile_counterfactual"
+        ],
+        "3": [
+          "implausible_time_dependent_change"
+        ]
+      }
+    },
+    "2": {
+      "ground_truth_issues": [
+        "fragile_counterfactual",
+        "inconsistent_work_profile",
+        "too_many_changes",
+        "unactionable_capital_shift"
+      ],
+      "ground_truth_by_cf": {
+        "0": [
+          "inconsistent_work_profile",
+          "too_many_changes",
+          "unactionable_capital_shift"
+        ],
+        "1": [
+          "fragile_counterfactual",
+          "too_many_changes",
+          "unactionable_capital_shift"
+        ],
+        "2": [
+          "too_many_changes",
+          "unactionable_capital_shift"
+        ],
+        "3": [
+          "too_many_changes",
+          "unactionable_capital_shift"
+        ]
+      }
+    },
+    "3": {
+      "ground_truth_issues": [
+        "unactionable_capital_shift"
+      ],
+      "ground_truth_by_cf": {
+        "0": [
+          "unactionable_capital_shift"
+        ],
+        "1": [
+          "unactionable_capital_shift"
+        ],
+        "2": [
+          "unactionable_capital_shift"
+        ],
+        "3": [
+          "unactionable_capital_shift"
+        ]
+      }
+    },
+    "4": {
+      "ground_truth_issues": [
+        "fragile_counterfactual",
+        "unactionable_capital_shift"
+      ],
+      "ground_truth_by_cf": {
+        "0": [
+          "fragile_counterfactual"
+        ],
+        "1": [
+          "fragile_counterfactual",
+          "unactionable_capital_shift"
+        ],
+        "2": [
+          "unactionable_capital_shift"
+        ],
+        "3": [
+          "fragile_counterfactual",
+          "unactionable_capital_shift"
+        ]
+      }
+    },
+    "5": {
+      "ground_truth_issues": [
+        "fragile_counterfactual",
+        "implausible_time_dependent_change"
+      ],
+      "ground_truth_by_cf": {
+        "0": [
+          "fragile_counterfactual"
+        ],
+        "1": [
+          "implausible_time_dependent_change"
+        ]
+      }
+    },
+    "6": {
+      "ground_truth_issues": [
+        "implausible_time_dependent_change",
+        "inconsistent_work_profile",
+        "too_many_changes",
+        "unactionable_capital_shift"
+      ],
+      "ground_truth_by_cf": {
+        "0": [
+          "implausible_time_dependent_change",
+          "inconsistent_work_profile",
+          "too_many_changes",
+          "unactionable_capital_shift"
+        ],
+        "1": [
+          "too_many_changes",
+          "unactionable_capital_shift"
+        ],
+        "2": [
+          "too_many_changes",
+          "unactionable_capital_shift"
+        ],
+        "3": [
+          "too_many_changes",
+          "unactionable_capital_shift"
+        ]
+      }
+    },
+    "7": {
+      "ground_truth_issues": [
+        "fragile_counterfactual",
+        "implausible_time_dependent_change",
+        "too_many_changes"
+      ],
+      "ground_truth_by_cf": {
+        "0": [
+          "fragile_counterfactual",
+          "too_many_changes"
+        ],
+        "1": [
+          "implausible_time_dependent_change",
+          "too_many_changes"
+        ],
+        "2": [
+          "fragile_counterfactual",
+          "implausible_time_dependent_change",
+          "too_many_changes"
+        ]
+      }
+    },
+    "8": {
+      "ground_truth_issues": [
+        "fragile_counterfactual",
+        "implausible_time_dependent_change"
+      ],
+      "ground_truth_by_cf": {
+        "0": [
+          "fragile_counterfactual"
+        ],
+        "1": [
+          "fragile_counterfactual",
+          "implausible_time_dependent_change"
+        ],
+        "2": [
+          "fragile_counterfactual"
+        ],
+        "3": []
+      }
+    },
+    "9": {
+      "ground_truth_issues": [
+        "fragile_counterfactual",
+        "implausible_time_dependent_change"
+      ],
+      "ground_truth_by_cf": {
+        "0": [
+          "fragile_counterfactual"
+        ],
+        "1": [
+          "fragile_counterfactual",
+          "implausible_time_dependent_change"
+        ],
+        "2": [
+          "fragile_counterfactual"
+        ],
+        "3": [
+          "fragile_counterfactual"
+        ]
+      }
+    }
+  }
+}

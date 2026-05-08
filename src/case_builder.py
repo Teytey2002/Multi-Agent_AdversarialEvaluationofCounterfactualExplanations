@@ -8,7 +8,7 @@ Each case corresponds to one unfavorable individual and contains:
   - DiCE-paper quality metrics (proximity, sparsity, diversity …)
   - model-level performance context
   - deterministic heuristic flags from heuristics.py
-  - a `ground_truth_issues` placeholder for Ivan's issue taxonomy
+  - draft reference labels from annotations/ground_truth_labels.json
 
 Usage
 -----
@@ -45,11 +45,13 @@ from heuristics import compute_heuristic_metrics
 # Paths (relative to repo root — run with PYTHONPATH=src from repo root)
 # ---------------------------------------------------------------------------
 RESULTS_DIR = Path("results")
+ANNOTATIONS_DIR = Path("annotations")
 UNFAVORABLE_PATH = RESULTS_DIR / "unfavorable_samples.csv"
 COUNTERFACTUALS_PATH = RESULTS_DIR / "counterfactuals.csv"
 METRICS_PATH = RESULTS_DIR / "cf_metrics_per_instance.csv"
 MODEL_METRICS_PATH = RESULTS_DIR / "logistic_regression_metrics.json"
 GENERATION_POLICY_PATH = RESULTS_DIR / "generation_policy.json"
+GROUND_TRUTH_LABELS_PATH = ANNOTATIONS_DIR / "ground_truth_labels.json"
 OUTPUT_PATH = RESULTS_DIR / "cases.json"
 
 # The 14 raw features in the Adult Income dataset
@@ -143,6 +145,14 @@ def _load_generation_policy() -> dict[str, Any]:
         return json.load(f)
 
 
+def _load_ground_truth_annotations() -> dict[str, Any]:
+    """Load manual/team ground-truth labels when available."""
+    if not GROUND_TRUTH_LABELS_PATH.exists():
+        return {}
+    with open(GROUND_TRUTH_LABELS_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+
 def _policy_context_for_case(policy: dict[str, Any], case_id: int) -> dict[str, Any]:
     """Return compact policy metadata relevant to one case."""
     if not policy:
@@ -175,7 +185,8 @@ def build_cases(
     label_fn : callable, optional
         A function ``(case_dict) -> list[str]`` that assigns ground-truth
         issue labels.  When Ivan's taxonomy is ready, plug it in here.
-        Defaults to an empty list per case.
+        Defaults to labels loaded from annotations/ground_truth_labels.json,
+        or an empty list when no annotation exists for a case.
 
     Returns
     -------
@@ -188,6 +199,8 @@ def build_cases(
     metrics = pd.read_csv(METRICS_PATH)
     model_info = _load_model_metrics()
     generation_policy = _load_generation_policy()
+    ground_truth_annotations = _load_ground_truth_annotations()
+    ground_truth_cases = ground_truth_annotations.get("cases", {})
     heuristic_fn = _load_heuristic_fn()
     per_instance_ranges = generation_policy.get("per_instance_permitted_range", {})
 
@@ -207,6 +220,7 @@ def build_cases(
         original_features = _row_to_features(srow)
         case_policy = _policy_context_for_case(generation_policy, int(i))
         permitted_range = per_instance_ranges.get(str(i), {})
+        ground_truth_case = ground_truth_cases.get(str(i), {})
 
         # Prediction context from predict.py
         prediction_label = LABEL_MAP.get(int(srow["prediction"]), str(srow["prediction"]))
@@ -272,7 +286,13 @@ def build_cases(
                 "issue_evidence": aggregate_issue_evidence,
                 "constraint_evidence": aggregate_constraint_evidence,
             },
-            "ground_truth_issues": [],  # ← Ivan's taxonomy plugs in here
+            "ground_truth_issues": list(ground_truth_case.get("ground_truth_issues", [])),
+            "ground_truth_by_cf": ground_truth_case.get("ground_truth_by_cf", {}),
+            "ground_truth_source": {
+                "file": GROUND_TRUTH_LABELS_PATH.as_posix(),
+                "schema_version": ground_truth_annotations.get("schema_version"),
+                "annotation_status": ground_truth_annotations.get("annotation_status"),
+            } if ground_truth_case else None,
         }
 
         # Optional: auto-label if a taxonomy function is provided
