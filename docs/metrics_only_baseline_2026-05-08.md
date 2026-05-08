@@ -268,6 +268,18 @@ results/metrics_only_outputs/metrics_only_<timestamp>/metrics_only_results.json
 results/metrics_only_outputs/metrics_only_latest.json
 ```
 
+Visual summary:
+
+```powershell
+$env:PYTHONPATH="src"; .\.venv\Scripts\python.exe src\visualize_metrics_only.py
+```
+
+This writes:
+
+```text
+results/metrics_only_outputs/visuals/metrics_only_summary.svg
+```
+
 ---
 
 ## 8. Current Run Summary
@@ -592,33 +604,31 @@ Qualitative comparison:
 
 ---
 
-## 13. Current Limitation Of The Baseline Output
+## 13. Current Status Of Reference Labels
 
-The current `metrics_only_latest.json` includes agreement metrics such as:
+The first version of this patch was run before `ground_truth_issues` had been filled. At that point, agreement metrics were not meaningful because every case looked clean to the scoring function.
+
+After adding `annotations/ground_truth_labels.json` and regenerating `results/cases.json`, the metrics-only baseline can now be scored against a draft human-perspective reference set.
+
+Current `metrics_only_latest.json` agreement summary:
 
 ```json
 {
-  "false_positive_rate": 100.0,
-  "exact_match_rate": 0.0
+  "total_cases": 10,
+  "total_ground_truth_issues": 27,
+  "caught_issues": 24,
+  "detection_rate": 88.89,
+  "exact_match_rate": 60.0
 }
 ```
 
-These numbers should not be interpreted yet.
+These numbers are useful as a first draft, but they are not final scientific results yet.
 
-Reason:
+Correct interpretation:
 
-```json
-"ground_truth_issues": []
-```
-
-is still empty for every case in `results/cases.json`.
-
-So every flagged issue currently appears as an "extra" issue. This is expected. It does not mean the baseline is wrong; it means the reference labels have not been created.
-
-Correct interpretation today:
-
-- Use the verdicts as deterministic baseline outputs.
-- Do not use the agreement scores until manual/team labels exist.
+- The current labels are an initial Codex-authored human-perspective draft.
+- They need user/team review before being treated as final reference labels.
+- The draft already exposes useful disagreements: the baseline misses some `inconsistent_work_profile` labels and over-flags `extreme_working_hours` in case 4.
 
 ---
 
@@ -641,7 +651,7 @@ Correct interpretation today:
 | Rule-bound | Cannot reason beyond encoded thresholds. |
 | Conservative | May over-flag borderline cases. |
 | No semantic nuance | Cannot judge whether a work transition is contextually plausible unless already encoded. |
-| No human reference | Cannot prove correctness until `ground_truth_issues` is filled. |
+| Draft reference only | Current `ground_truth_issues` labels still need team review before final claims. |
 | Limited explanation quality | Summaries are short and mechanical by design. |
 
 ---
@@ -653,10 +663,11 @@ The most solid next step is not to tune the baseline blindly.
 Instead:
 
 1. Keep the baseline deterministic and transparent.
-2. Manually annotate `ground_truth_issues` for the 10 current cases.
-3. Run:
+2. Review and revise `annotations/ground_truth_labels.json` until the team agrees on the reference labels.
+3. Regenerate cases and run evaluations:
 
 ```powershell
+$env:PYTHONPATH="src"; .\.venv\Scripts\python.exe src\case_builder.py --pretty
 $env:PYTHONPATH="src"; .\.venv\Scripts\python.exe src\run_metrics_only.py
 $env:PYTHONPATH="src"; .\.venv\Scripts\python.exe src\run_debate.py --single-llm
 $env:PYTHONPATH="src"; .\.venv\Scripts\python.exe src\run_debate.py
@@ -685,4 +696,3 @@ quantitative comparison + qualitative reasoning analysis
 The metrics-only baseline is now a complete first comparator.
 
 It proves what can already be detected from fixed metrics and heuristics. The future LLM and multi-agent stages must justify themselves by doing more than reproducing those deterministic labels: they should improve severity calibration, explain trade-offs, identify contextual plausibility, and produce better human-facing judgments.
-
