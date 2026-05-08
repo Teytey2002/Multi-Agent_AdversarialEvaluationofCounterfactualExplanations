@@ -69,7 +69,9 @@ def _compact_case_for_prompt(case_data: dict[str, Any]) -> dict[str, Any]:
     The original case JSON stores full feature dictionaries for every CF plus
     repeated explanatory evidence. That is useful as an artifact, but it exceeds
     small free-tier model limits. The prompt only needs the original row, per-CF
-    changes, confidence, metrics, and heuristic flags/evidence.
+    changes, confidence, metrics, and heuristic flags/evidence. Ground-truth
+    labels are deliberately excluded because they are used only for scoring
+    after the LLM has produced a verdict.
     """
     counterfactuals = []
     for cf in case_data.get("counterfactuals", []):
@@ -103,7 +105,6 @@ def _compact_case_for_prompt(case_data: dict[str, Any]) -> dict[str, Any]:
             ),
         },
         "counterfactuals": counterfactuals,
-        "ground_truth_issues": case_data.get("ground_truth_issues", []),
     }
 
 

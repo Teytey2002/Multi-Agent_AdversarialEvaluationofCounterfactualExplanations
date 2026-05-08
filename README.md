@@ -435,16 +435,16 @@ A typical `requirements.txt` for the current stage includes:
 pandas
 numpy
 scikit-learn
-xgboost
 joblib
 dice-ml
+autogen-agentchat
+autogen-ext[openai]  # OpenAI-compatible AutoGen client used against Groq
+python-dotenv
 ```
 
-Depending on the next steps, additional packages will later be added, such as:
-- `matplotlib`
-- `streamlit`
-- `crewai` or `autogen`
-- `openai` or another LLM backend client
+The LLM execution path is intentionally Groq-only for the current experiment
+series. Set `GROQ_API_KEY` in `.env`; no Gemini/OpenAI provider configuration is
+maintained.
 
 ---
 

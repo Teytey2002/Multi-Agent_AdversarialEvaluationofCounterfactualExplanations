@@ -4,7 +4,8 @@ scikit-learn
 joblib
 dice-ml
 
-# Multi-agent debate system
+# Multi-agent debate system. The `openai` extra provides the AutoGen
+# OpenAI-compatible client used to call Groq's OpenAI-compatible endpoint.
 autogen-agentchat>=0.4.9
 autogen-ext[openai]>=0.4.9
 python-dotenv>=1.0.1

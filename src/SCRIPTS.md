@@ -329,11 +329,12 @@ Not run directly — imported by `train.py`.
 **Purpose** — Bridge layer that converts the ML pipeline's CSV outputs into structured JSON cases consumable by the AutoGen multi-agent debate system.
 
 ### Workflow
-1. Reads four pipeline artifacts:
-   - `results/unfavorable_samples.csv` — the 10 sampled individuals.
-   - `results/counterfactuals.csv` — originals + counterfactual rows (row_type / cf_rank).
-   - `results/cf_metrics.csv` — per-instance DiCE quality metrics.
-   - `results/logistic_regression_metrics.json` — model evaluation metrics.
+1. Reads pipeline artifacts:
+   - `results/unfavorable_samples.csv` - the 10 sampled individuals.
+   - `results/counterfactuals.csv` - originals + counterfactual rows (row_type / cf_rank).
+   - `results/cf_metrics_per_instance.csv` - per-instance DiCE quality metrics.
+   - `results/logistic_regression_metrics.json` - model evaluation metrics.
+   - `annotations/ground_truth_labels.json` - draft human-perspective reference labels, when available.
 2. For each sample, locates its CFs via `original_index`.
 3. Computes `changes_summary` per CF: `{feature: {from: ..., to: ...}}` for every changed feature.
 4. Assembles a case dict with:
@@ -341,7 +342,7 @@ Not run directly — imported by `train.py`.
    - `counterfactuals` array (one entry per CF, each with features, features_changed, changes_summary, cf_confidence).
    - `metrics` block (validity, proximity, sparsity, diversity).
    - `model_info` (name, accuracy, precision, recall, F1).
-   - `ground_truth_issues` (empty — placeholder for Ivan's issue taxonomy).
+   - `ground_truth_issues`, `ground_truth_by_cf`, and `ground_truth_source` from the annotation artifact.
 5. Writes all cases to a single JSON file.
 
 ### Key parameters
@@ -358,7 +359,7 @@ $env:PYTHONPATH="src"; python src/case_builder.py --pretty
 ### Inputs / Outputs
 | | Description |
 |---|---|
-| **Input** | `results/unfavorable_samples.csv`, `results/counterfactuals.csv`, `results/cf_metrics.csv`, `results/logistic_regression_metrics.json` |
+| **Input** | `results/unfavorable_samples.csv`, `results/counterfactuals.csv`, `results/cf_metrics_per_instance.csv`, `results/logistic_regression_metrics.json`, `annotations/ground_truth_labels.json` |
 | **Output** | `results/cases.json` — array of case dicts (one per sampled individual) |
 
 ### Output schema (per case)
@@ -382,7 +383,9 @@ $env:PYTHONPATH="src"; python src/case_builder.py --pretty
     }
   ],
   "metrics": { "validity": 1.0, "continuous_proximity": -3.01, ... },
-  "ground_truth_issues": []
+  "ground_truth_issues": ["fragile_counterfactual"],
+  "ground_truth_by_cf": { "0": ["fragile_counterfactual"] },
+  "ground_truth_source": { "file": "annotations/ground_truth_labels.json", ... }
 }
 ```
 
@@ -438,7 +441,34 @@ This baseline is **not ground truth**. It is one competitor in the comparison. H
 
 ---
 
-## 11. `agents/` package
+## 11. `visualize_metrics_only.py`
+
+**Purpose** - Render a dependency-free SVG dashboard from a metrics-only results JSON file.
+
+### Workflow
+1. Loads `results/metrics_only_outputs/metrics_only_latest.json` by default.
+2. Computes visual comparison summaries:
+   - issue recall, precision, F1, exact match
+   - ground-truth vs metrics-only issue counts by label
+   - per-case match / missed issue / extra issue status
+3. Writes an SVG image to `results/metrics_only_outputs/visuals/metrics_only_summary.svg`.
+
+### CLI
+```bash
+$env:PYTHONPATH="src"; python src/visualize_metrics_only.py
+
+$env:PYTHONPATH="src"; python src/visualize_metrics_only.py --input results/metrics_only_outputs/metrics_only_latest.json --output results/metrics_only_outputs/visuals/custom_summary.svg
+```
+
+### Inputs / Outputs
+| | Description |
+|---|---|
+| **Input** | metrics-only results JSON |
+| **Output** | SVG visual summary |
+
+---
+
+## 12. `agents/` package
 
 **Purpose** - Multi-agent adversarial debate system for evaluating counterfactual explanations, adapted from the AutoGen PoC.
 
@@ -449,7 +479,7 @@ This baseline is **not ground truth**. It is one competitor in the comparison. H
 | `__init__.py` | Package marker; re-exports `build_debate_agents`, `build_single_evaluator_agent`, `run_debate`, `run_single_llm` |
 | `prompts.py` | **Issue taxonomy** (placeholder — Ivan replaces this) + `get_issue_guidance()` formatter |
 | `agents.py` | 4 debate agents (Prosecutor, Defense, Expert\_Witness, Judge) + 1 single-LLM baseline (Single\_Evaluator) |
-| `config.py` | `LLMConfig` dataclass, provider resolution (Groq / Gemini / OpenAI), `build_model_client()` |
+| `config.py` | `LLMConfig` dataclass, Groq-only model/API configuration, `build_model_client()` |
 | `debate.py` | `run_debate()` / `run_single_llm()` — orchestrates `SelectorGroupChat` with round-robin or auto speaker selection |
 | `utils.py` | `parse_judge_verdict()`, `serialise_message()`, `calculate_cost()`, `save_debate_transcript()`, `compute_agreement()` |
 
@@ -470,15 +500,20 @@ This baseline is **not ground truth**. It is one competitor in the comparison. H
 - **Real data**: loads `results/cases.json` (from `case_builder.py`), not mock cases.
 
 ### Environment setup
-Requires a `.env` file at the repo root with at least one API key:
+Requires a `.env` file at the repo root with a Groq API key:
 
 ```
 GROQ_API_KEY=gsk_...
-# or
-GEMINI_API_KEY=AIza...
-# or
-OPENAI_API_KEY=sk-...
+GROQ_MODEL=llama-3.1-8b-instant
+GROQ_BASE_URL=https://api.groq.com/openai/v1
 ```
+
+`GROQ_MODEL` and `GROQ_BASE_URL` are optional; the values above are the
+defaults. The current experiment series is Groq-only. `llama-3.1-8b-instant`
+is the default because the official Groq Free Plan limits are workable for
+repeated case runs: 30 RPM, 14.4K RPD, 6K TPM, and 500K TPD. The code uses
+AutoGen's OpenAI-compatible client because Groq exposes an OpenAI-compatible
+endpoint; this is a client adapter, not an OpenAI provider configuration.
 
 ### Debate flow — how a single case is processed
 
@@ -520,7 +555,8 @@ True label: <=50K  |  False negative: False
 Number of counterfactuals generated: 4
 ```
 
-**Layer 2 — Full raw case JSON** (the entire `cases.json` entry, pretty-printed):
+**Layer 2 - Prompt-safe compact case JSON** (the fields needed for evaluation,
+pretty-printed):
 ```json
 {
   "case_id": 0,
@@ -552,12 +588,15 @@ Number of counterfactuals generated: 4
     "continuous_diversity": 0.21,
     "categorical_diversity": 0.18,
     "count_diversity": 0.19
-  },
-  "ground_truth_issues": []
+  }
 }
 ```
 
-The task message also states the debate structure rules — how many rounds, that the Judge speaks last, and that agents must not invent evidence.
+The prompt deliberately excludes `ground_truth_issues`, `ground_truth_by_cf`,
+and `ground_truth_source`. Those labels are used only after the LLM has produced
+a verdict, when `run_debate.py` scores the output against the draft reference.
+The task message also states the debate structure rules - how many rounds, that
+the Judge speaks last, and that agents must not invent evidence.
 
 #### 2. Speaker order — who speaks and when
 
@@ -586,7 +625,7 @@ In AutoGen's `SelectorGroupChat`, when an agent is selected it receives the **en
 
 | When selected | Context the agent sees |
 |---------------|------------------------|
-| **Prosecutor** (turn 1) | System message + task message (full case JSON + header + rules) |
+| **Prosecutor** (turn 1) | System message + task message (prompt-safe compact case JSON + header + rules) |
 | **Defense** (turn 2) | System message + task message + Prosecutor's argument |
 | **Expert\_Witness** (turn 3) | System message + task message + Prosecutor's argument + Defense's argument |
 | **Prosecutor** (turn 4, round 2) | System message + all previous turns |
@@ -642,7 +681,7 @@ run_debate(case_data)
        │
        ├─ _build_case_prompt()  ─────────────────────────────────────────────┐
        │   • human-readable header (age, sex, occupation, prediction, FN flag)│
-       │   • full case JSON (original, counterfactuals[], metrics, model_info) │
+       │   • prompt-safe compact case JSON (original, counterfactuals[], metrics, model_info) │
        │   • issue taxonomy bullet list                                        │
        │   • debate rules (max_rounds, Judge speaks last)                      │
        └──────────────────────────► SelectorGroupChat.run_stream(task=prompt) │
@@ -684,7 +723,7 @@ When `--single-llm` is passed, `run_single_llm()` is called instead. The flow is
 _build_single_llm_prompt(case_data)
   • issue taxonomy
   • instruction to return the Judge JSON schema
-  • full case JSON
+  • prompt-safe compact case JSON, without ground-truth labels
 
        ▼
 Single_Evaluator.run(task=prompt)
@@ -700,14 +739,14 @@ The single-LLM evaluator uses the same verdict schema as the Judge, making resul
 
 ---
 
-## 11. `run_debate.py`
+## 13. `run_debate.py`
 
 **Purpose** — CLI entry point to run multi-agent debates (or single-LLM baselines) on real pipeline cases.
 
 ### Workflow
 1. Loads `results/cases.json` (or a custom path via `--cases-file`).
 2. Optionally filters to specific case IDs (`--case-ids 0 2 5`).
-3. Resolves LLM provider/model from CLI args, env vars, or `.env` defaults.
+3. Resolves Groq model/API configuration from CLI args, env vars, or `.env` defaults.
 4. For each case, runs either a 4-agent debate (`run_debate`) or a single-LLM evaluation (`--single-llm`).
 5. Saves per-run results JSON + per-case Markdown transcripts to `results/debate_outputs/`.
 
@@ -715,8 +754,8 @@ The single-LLM evaluator uses the same verdict schema as the Judge, making resul
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--provider` | `groq` | LLM provider: `groq`, `gemini`, `openai` |
-| `--model` | per-provider | Model override |
+| `--provider` | `groq` | Fixed provider; only `groq` is accepted |
+| `--model` | `llama-3.1-8b-instant` | Groq model override |
 | `--speaker-selection` | `round_robin` | `round_robin` or `auto` |
 | `--max-rounds` | `2` | Specialist rounds before Judge |
 | `--temperature` | `0.2` | Sampling temperature |
@@ -735,8 +774,8 @@ $env:PYTHONPATH="src"; python src/run_debate.py
 # Single-LLM baseline, case 0 only, verbose
 $env:PYTHONPATH="src"; python src/run_debate.py --single-llm --case-ids 0 --verbose
 
-# Gemini provider, auto speaker selection
-$env:PYTHONPATH="src"; python src/run_debate.py --provider gemini --speaker-selection auto
+# Alternative Groq model, auto speaker selection
+$env:PYTHONPATH="src"; python src/run_debate.py --model llama-3.3-70b-versatile --speaker-selection auto
 ```
 
 ### Inputs / Outputs
@@ -756,3 +795,4 @@ $env:PYTHONPATH="src"; python src/run_debate.py --provider gemini --speaker-sele
   "reasoning_summary": "...",
   "recommended_action": "accept | review | reject"
 }
+

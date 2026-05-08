@@ -1,9 +1,9 @@
 """
-LLM provider configuration — adapted from the AutoGen PoC.
+Groq LLM configuration.
 
-Supports Groq (free tier), Google Gemini, and OpenAI via an OpenAI-compatible
-client.  Provider selection and API keys are resolved from CLI arguments,
-environment variables, or a local ``.env`` file (looked up from the repo root).
+The project standardises on Groq because it is the only free provider used in
+the experiment series with sufficiently generous limits for repeated case runs.
+The Groq API is consumed through AutoGen's OpenAI-compatible client.
 """
 
 from __future__ import annotations
@@ -34,19 +34,13 @@ def load_environment() -> None:
 # ---------------------------------------------------------------------------
 
 DEFAULT_PROVIDER = "groq"
-DEFAULT_MODELS: dict[str, str] = {
-    "groq":   "llama-3.1-8b-instant",
-    "gemini": "gemini-2.5-flash",
-    "openai": "gpt-4.1-mini",
-}
+DEFAULT_GROQ_MODEL = "llama-3.1-8b-instant"
+DEFAULT_MODELS: dict[str, str] = {"groq": DEFAULT_GROQ_MODEL}
 
 # Approximate public list prices per 1 M tokens (USD).
 MODEL_PRICING_USD_PER_1M: dict[str, dict[str, float]] = {
     "llama-3.1-8b-instant":                     {"input": 0.05,  "output": 0.08},
     "llama-3.3-70b-versatile":                   {"input": 0.59,  "output": 0.79},
-    "gemini-2.5-flash":                          {"input": 0.30,  "output": 2.50},
-    "gemini-2.5-flash-lite":                     {"input": 0.10,  "output": 0.40},
-    "gpt-4.1-mini":                              {"input": 0.40,  "output": 1.60},
 }
 
 # Groq models need explicit model_info because they aren't recognised by the
@@ -58,16 +52,6 @@ GROQ_MODEL_INFO: dict[str, object] = {
     "family":            "unknown",
     "structured_output": False,
 }
-
-
-def _resolve_gemini_family(model_name: str) -> str:
-    if model_name.startswith("gemini-2.5-flash"):
-        return "gemini-2.5-flash"
-    if model_name.startswith("gemini-2.5-pro"):
-        return "gemini-2.5-pro"
-    if model_name.startswith("gemini-2.0-flash"):
-        return "gemini-2.0-flash"
-    return "unknown"
 
 
 # ---------------------------------------------------------------------------
@@ -103,38 +87,24 @@ def resolve_llm_config(
     """Build an ``LLMConfig`` from CLI args + env vars + defaults."""
     load_environment()
 
-    resolved_provider = (provider or os.getenv("LLM_PROVIDER", DEFAULT_PROVIDER)).strip().lower()
-    if resolved_provider not in {"groq", "gemini", "openai"}:
-        raise ValueError(
-            f"Unsupported provider '{resolved_provider}'. Use 'groq', 'gemini', or 'openai'."
-        )
+    requested_provider = (provider or DEFAULT_PROVIDER).strip().lower()
+    if requested_provider != "groq":
+        raise ValueError("This project is configured for Groq only. Use provider='groq'.")
 
     resolved_temperature = temperature if temperature is not None else float(os.getenv("LLM_TEMPERATURE", "0.2"))
     resolved_max_tokens  = max_tokens  if max_tokens  is not None else int(os.getenv("LLM_MAX_TOKENS", "700"))
 
-    if resolved_provider == "groq":
-        api_key  = os.getenv("GROQ_API_KEY", "")
-        resolved_model = model or os.getenv("GROQ_MODEL", DEFAULT_MODELS["groq"])
-        base_url = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1")
-        env_var  = "GROQ_API_KEY"
-    elif resolved_provider == "gemini":
-        api_key  = os.getenv("GEMINI_API_KEY", "")
-        resolved_model = model or os.getenv("GEMINI_MODEL", DEFAULT_MODELS["gemini"])
-        base_url = os.getenv("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/")
-        env_var  = "GEMINI_API_KEY"
-    else:  # openai
-        api_key  = os.getenv("OPENAI_API_KEY", "")
-        resolved_model = model or os.getenv("OPENAI_MODEL", DEFAULT_MODELS["openai"])
-        base_url = os.getenv("OPENAI_BASE_URL") or None
-        env_var  = "OPENAI_API_KEY"
+    api_key  = os.getenv("GROQ_API_KEY", "")
+    resolved_model = model or os.getenv("GROQ_MODEL", DEFAULT_GROQ_MODEL)
+    base_url = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1")
 
     if not api_key:
         raise EnvironmentError(
-            f"Missing API key. Set {env_var} in your environment or in {ENV_PATH}."
+            f"Missing API key. Set GROQ_API_KEY in your environment or in {ENV_PATH}."
         )
 
     return LLMConfig(
-        provider=resolved_provider,
+        provider="groq",
         model=resolved_model,
         api_key=api_key,
         temperature=resolved_temperature,
@@ -154,31 +124,10 @@ def build_model_client(llm_config: LLMConfig) -> OpenAIChatCompletionClient:
         "max_retries": llm_config.max_retries,
     }
 
-    if llm_config.provider == "groq":
-        return OpenAIChatCompletionClient(
-            **common_kwargs,
-            base_url=llm_config.base_url,
-            model_info=GROQ_MODEL_INFO,
-            include_name_in_message=False,
-            add_name_prefixes=False,
-        )
-
-    if llm_config.provider == "gemini":
-        return OpenAIChatCompletionClient(
-            **common_kwargs,
-            base_url=llm_config.base_url,
-            model_info={
-                "vision":            True,
-                "function_calling":  True,
-                "json_output":       True,
-                "family":            _resolve_gemini_family(llm_config.model),
-                "structured_output": False,
-            },
-            include_name_in_message=False,
-            add_name_prefixes=False,
-        )
-
-    # OpenAI (native)
-    if llm_config.base_url:
-        return OpenAIChatCompletionClient(**common_kwargs, base_url=llm_config.base_url)
-    return OpenAIChatCompletionClient(**common_kwargs)
+    return OpenAIChatCompletionClient(
+        **common_kwargs,
+        base_url=llm_config.base_url,
+        model_info=GROQ_MODEL_INFO,
+        include_name_in_message=False,
+        add_name_prefixes=False,
+    )

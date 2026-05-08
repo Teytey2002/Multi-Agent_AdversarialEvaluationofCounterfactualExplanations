@@ -4,14 +4,14 @@ counterfactual evaluations on real pipeline cases.
 
 Usage examples
 --------------
-# Multi-agent debate (default: groq / llama-3.1-8b-instant, round_robin)
+# Multi-agent debate (default: Groq / llama-3.1-8b-instant, round_robin)
 $env:PYTHONPATH="src"; python src/run_debate.py
 
 # Single-LLM baseline
 $env:PYTHONPATH="src"; python src/run_debate.py --single-llm
 
-# Specific provider / model
-$env:PYTHONPATH="src"; python src/run_debate.py --provider gemini --model gemini-2.5-flash
+# Specific Groq model
+$env:PYTHONPATH="src"; python src/run_debate.py --model llama-3.3-70b-versatile
 
 # Run only cases 0 and 2
 $env:PYTHONPATH="src"; python src/run_debate.py --case-ids 0 2
@@ -107,8 +107,8 @@ def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description="Run multi-agent debate or single-LLM evaluation on real CF cases.",
     )
-    p.add_argument("--provider", choices=["groq", "gemini", "openai"], default=None,
-                   help="LLM provider (default: env var or groq).")
+    p.add_argument("--provider", choices=["groq"], default="groq",
+                   help="LLM provider. This project is configured for Groq only.")
     p.add_argument("--model", default=None,
                    help="Model override (e.g. llama-3.3-70b-versatile).")
     p.add_argument("--speaker-selection", choices=["round_robin", "auto"], default="round_robin",
@@ -156,9 +156,9 @@ def main() -> None:
     # Load real cases
     cases = load_cases(Path(args.cases_file), case_ids=args.case_ids)
 
-    # Resolve inter-case delay
-    default_delays = {"gemini": 60, "groq": 10, "openai": 0}
-    delay = args.delay if args.delay is not None else default_delays.get(llm_config.provider, 0)
+    # Groq Free Plan for llama-3.1-8b-instant is 30 RPM / 6K TPM / 14.4K RPD /
+    # 500K TPD. A conservative delay avoids tripping TPM with large case prompts.
+    delay = args.delay if args.delay is not None else 70
 
     print(f"Mode:     {mode}")
     print(f"Provider: {llm_config.provider}")

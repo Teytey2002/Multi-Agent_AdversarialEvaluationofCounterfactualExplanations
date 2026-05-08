@@ -14,7 +14,7 @@ train → predict → generate_cf      CSV/JSON → case dicts             metri
 
 - **ML pipeline** scripts are standalone (no classes), each reads upstream artifacts from `results/` or `models/`.
 - **Bridge layer** (`case_builder.py`) converts pipeline CSVs into a `cases.json` array consumed by the debate system. Each case has multiple CFs per individual (not one).
-- **Evaluation layer** includes `src/evaluators/metrics_only.py` for the deterministic non-LLM baseline and `src/agents/` for AutoGen single-LLM / multi-agent runs. The AutoGen package has clean separation: `config.py` (LLM providers), `agents.py` (5 agent definitions), `debate.py` (orchestration), `prompts.py` (issue taxonomy), `utils.py` (JSON parsing, cost, transcripts).
+- **Evaluation layer** includes `src/evaluators/metrics_only.py` for the deterministic non-LLM baseline and `src/agents/` for AutoGen single-LLM / multi-agent runs. The AutoGen package has clean separation: `config.py` (Groq-only LLM configuration), `agents.py` (5 agent definitions), `debate.py` (orchestration), `prompts.py` (issue taxonomy), `utils.py` (JSON parsing, cost, transcripts).
 
 ## Running Scripts
 
@@ -58,11 +58,12 @@ Pipeline order matters - each script depends on outputs from previous steps. The
 - Uses `autogen-agentchat` `SelectorGroupChat` with either `round_robin` (deterministic) or `auto` (LLM-selected) speaker strategies.
 - Termination: `TextMentionTermination("VERDICT_COMPLETE") | MaxMessageTermination(...)`.
 - Expert Witness receives **pre-computed real DiCE metrics** — never ask the LLM to simulate or invent metric values.
-- LLM providers configured via `.env` at repo root (`GROQ_API_KEY`, `GEMINI_API_KEY`, `OPENAI_API_KEY`). Provider resolution: CLI arg → env var `LLM_PROVIDER` → default `"groq"`.
-- Groq models require explicit `model_info` dict because AutoGen doesn't recognise them natively.
+- LLM execution is Groq-only. Configure `.env` with `GROQ_API_KEY`; optional overrides are `GROQ_MODEL` and `GROQ_BASE_URL`.
+- Default model: `llama-3.1-8b-instant`. Official Groq Free Plan limits for this model are 30 RPM, 14.4K RPD, 6K TPM, and 500K TPD.
+- Groq is called through AutoGen's OpenAI-compatible client, so the dependency name includes `openai` even though no OpenAI provider is configured.
 
 ## Placeholders & In-Progress Areas
 
-- `ground_truth_issues` in cases is always `[]` - no labeling function yet. `case_builder.build_cases()` accepts a `label_fn` callback for this.
-- `ground_truth_issues` still has no labeling function; heuristic labels are computed deterministically but are not a human gold standard.
+- Draft reference labels live in `annotations/ground_truth_labels.json` and are injected into `results/cases.json` by `case_builder.py`.
+- The current ground-truth labels are an initial human-perspective draft for review; they are not an external gold standard.
 - Focused foundation tests live in `tests/test_foundation_policy.py`.
