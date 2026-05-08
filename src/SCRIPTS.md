@@ -1,8 +1,8 @@
 # Pipeline Scripts — Per-Script Documentation
 
 > Quick reference for every script in `src/`.
-> Run order: **data_loader → explore_data → preprocessing → models → train → predict → generate_cf → cf_metrics → case_builder → run_debate**
-> (utils is a shared helper module; agents/ is a package used by run_debate.)
+> Run order: **data_loader → explore_data → preprocessing → models → train → predict → generate_cf → cf_metrics → case_builder → run_metrics_only / run_debate**
+> (utils is a shared helper module; evaluators/ powers the deterministic baseline; agents/ is used by run_debate.)
 
 All scripts must be executed from the **repo root** with `PYTHONPATH=src`:
 
@@ -400,9 +400,47 @@ $env:PYTHONPATH="src"; python src/case_builder.py --pretty
 
 ---
 
-## 10. `agents/` package
+## 10. `evaluators/metrics_only.py` and `run_metrics_only.py`
 
-**Purpose** — Multi-agent adversarial debate system for evaluating counterfactual explanations, adapted from the AutoGen PoC.
+**Purpose** - Deterministic non-LLM baseline that converts computed case evidence into the same verdict schema used by the LLM Judge.
+
+### Workflow
+1. Loads `results/cases.json`.
+2. Reads case-level deterministic evidence:
+   - `heuristic_summary.flagged_issues_union`
+   - `heuristic_summary.constraint_violations_union`
+   - `metrics` such as validity, proximity, sparsity, diversity
+   - `is_false_negative`
+3. Produces one verdict per case with:
+   - `overall_assessment`
+   - `flagged_issues`
+   - `severity`
+   - `confidence`
+   - `reasoning_summary`
+   - `recommended_action`
+4. Saves timestamped and latest JSON outputs under `results/metrics_only_outputs/`.
+
+### CLI
+```bash
+$env:PYTHONPATH="src"; python src/run_metrics_only.py
+
+$env:PYTHONPATH="src"; python src/run_metrics_only.py --case-ids 0 3 5
+```
+
+### Inputs / Outputs
+| | Description |
+|---|---|
+| **Input** | `results/cases.json` |
+| **Output** | `results/metrics_only_outputs/metrics_only_<timestamp>/metrics_only_results.json` and `results/metrics_only_outputs/metrics_only_latest.json` |
+
+### Important interpretation
+This baseline is **not ground truth**. It is one competitor in the comparison. Human/team annotations in `ground_truth_issues` remain the reference labels when scoring metrics-only vs single-LLM vs multi-agent outputs.
+
+---
+
+## 11. `agents/` package
+
+**Purpose** - Multi-agent adversarial debate system for evaluating counterfactual explanations, adapted from the AutoGen PoC.
 
 ### Package structure
 

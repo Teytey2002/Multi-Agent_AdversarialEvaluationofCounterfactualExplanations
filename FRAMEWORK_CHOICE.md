@@ -144,7 +144,7 @@ Neither PoC currently connects to the real ML pipeline. Here is what integration
 | Step | Description | AutoGen readiness | CrewAI readiness |
 |---|---|---|---|
 | 1. Load real data | Read CSVs, pair each CF with its original | Replace `mock_data.py` → straightforward | Rewrite inline loading in `main.py` |
-| 2. Compute real metrics | Sparsity, proximity, SHAP, plausibility | Add to data loader; inject into case prompt | Already has `heuristics.py` pattern ✅ |
+| 2. Compute real metrics | Sparsity, proximity, diversity, confidence, heuristic plausibility | Add to data loader; inject into case prompt | Already has `heuristics.py` pattern ✅ |
 | 3. Format as cases | Convert (original, CF, metrics) → case dict | Case schema already exists in `mock_data.py` | Case schema is in `cases.json` |
 | 4. Run evaluation | Multi-agent + single-LLM + metrics-only | 2 of 3 modes already built | 1 mode only |
 | 5. Score results | Compare verdicts | `compute_agreement()` exists; needs adaptation for real data (no planted ground truth → human labels) | Must be built from scratch |
@@ -160,7 +160,7 @@ CrewAI's `heuristics.py` demonstrates a powerful design pattern:
 Pre-compute deterministic metrics in Python → Inject as structured text into agent prompts
 ```
 
-In the AutoGen PoC, the Expert Witness currently **simulates** SHAP values and feasibility scores via the LLM, because the data is mocked. In the final pipeline, the Expert Witness should **receive real computed metrics** — sparsity, proximity, SHAP feature importances — as pre-computed evidence, just like CrewAI does.
+In the AutoGen PoC, the Expert Witness simulated technical evidence via the LLM because the data was mocked. In the final pipeline, the Expert Witness should **receive real computed metrics** — validity, proximity, sparsity, diversity, confidence, and deterministic heuristic flags — as pre-computed evidence, just like CrewAI does.
 
 This is not a framework feature; it's a **design decision** that can be adopted in AutoGen by enriching the case prompt with computed metrics before the debate starts.
 
@@ -206,7 +206,8 @@ This is not a framework feature; it's a **design decision** that can be adopted 
 │              BRIDGE LAYER (new — to be built)                   │
 │                                                                 │
 │  1. Load (original, CF) pairs from CSVs                         │
-│  2. Compute real metrics: sparsity, proximity, SHAP             │
+│  2. Compute real metrics: validity, proximity, sparsity,        │
+│     diversity, confidence, heuristic flags                      │
 │  3. Identify feature changes and flag protected attributes      │
 │  4. Format each pair as a structured "case" dict                │
 │  5. Optionally attach human annotations for ground truth        │
@@ -217,8 +218,8 @@ This is not a framework feature; it's a **design decision** that can be adopted 
 │         EVALUATION LAYER (AutoGen — adapted from PoC)           │
 │                                                                 │
 │  Strategy 1: Metrics-only baseline                              │
-│    → Verdict derived purely from computed sparsity/proximity/   │
-│      SHAP thresholds (no LLM involved)                          │
+│    → Verdict derived purely from computed metrics and           │
+│      heuristic thresholds (no LLM involved)                     │
 │                                                                 │
 │  Strategy 2: Single-LLM evaluator                               │
 │    → One agent sees the case + metrics and produces a verdict   │
@@ -241,11 +242,11 @@ This is not a framework feature; it's a **design decision** that can be adopted 
 - [ ] Switch main model from XGBoost to **Logistic Regression** for DiCE compatibility (gradient method)
 - [ ] Re-generate counterfactuals with `method="gradient"` instead of `method="random"`
 - [ ] Fix `cf_metrics.py` so each CF is compared against its correct original (not the first row of each group)
-- [ ] Add SHAP integration for feature-level explanations
+- [ ] Strengthen the calculated metric and heuristic evidence passed to agents
 
 ### Phase 2 — Build the bridge layer (all)
 - [ ] Write a `case_builder.py` that loads real CSVs and produces case dicts matching the AutoGen schema
-- [ ] Compute real metrics (sparsity, proximity, SHAP) per case and inject them into the case prompt
+- [ ] Compute real metrics (validity, proximity, sparsity, diversity, confidence, heuristic flags) per case and inject them into the case prompt
 - [ ] Define a real issue taxonomy grounded in the Adult Income domain (protected attributes: `race`, `sex`, `native-country`; immutable: `age`; actionability constraints per feature)
 - [ ] Decide on evaluation strategy: human annotations, synthetic ground truth, or inter-rater agreement
 

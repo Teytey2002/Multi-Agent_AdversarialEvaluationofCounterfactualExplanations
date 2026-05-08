@@ -7,14 +7,14 @@ Multi-agent adversarial evaluation of counterfactual explanations for the **Adul
 ## Architecture — Three Layers
 
 ```
-ML Pipeline (src/*.py)          →  Bridge (src/case_builder.py)  →  Evaluation (src/agents/ + src/run_debate.py)
-train → predict → generate_cf      CSV/JSON → case dicts             AutoGen SelectorGroupChat debate
-→ cf_metrics                                                         or single-LLM baseline
+ML Pipeline (src/*.py)          →  Bridge (src/case_builder.py)  →  Evaluation
+train → predict → generate_cf      CSV/JSON → case dicts             metrics-only baseline
+→ cf_metrics                                                         or AutoGen single/multi-agent
 ```
 
 - **ML pipeline** scripts are standalone (no classes), each reads upstream artifacts from `results/` or `models/`.
 - **Bridge layer** (`case_builder.py`) converts pipeline CSVs into a `cases.json` array consumed by the debate system. Each case has multiple CFs per individual (not one).
-- **Evaluation layer** (`src/agents/`) is an AutoGen package with clean separation: `config.py` (LLM providers), `agents.py` (5 agent definitions), `debate.py` (orchestration), `prompts.py` (issue taxonomy), `utils.py` (JSON parsing, cost, transcripts).
+- **Evaluation layer** includes `src/evaluators/metrics_only.py` for the deterministic non-LLM baseline and `src/agents/` for AutoGen single-LLM / multi-agent runs. The AutoGen package has clean separation: `config.py` (LLM providers), `agents.py` (5 agent definitions), `debate.py` (orchestration), `prompts.py` (issue taxonomy), `utils.py` (JSON parsing, cost, transcripts).
 
 ## Running Scripts
 
@@ -26,10 +26,11 @@ $env:PYTHONPATH="src"; python src/predict.py
 $env:PYTHONPATH="src"; python src/generate_cf.py
 $env:PYTHONPATH="src"; python src/cf_metrics.py
 $env:PYTHONPATH="src"; python src/case_builder.py --pretty
+$env:PYTHONPATH="src"; python src/run_metrics_only.py
 $env:PYTHONPATH="src"; python src/run_debate.py --verbose
 ```
 
-Pipeline order matters — each script depends on outputs from previous steps. The full chain is: `explore_data → train → predict → generate_cf → cf_metrics → case_builder → run_debate`. (`explore_data` is optional but recommended before taxonomy work.)
+Pipeline order matters - each script depends on outputs from previous steps. The full chain is: `explore_data → train → predict → generate_cf → cf_metrics → case_builder → run_metrics_only / run_debate`. (`explore_data` is optional but recommended before taxonomy work.)
 
 ## Key Data Flow
 
@@ -41,7 +42,7 @@ Pipeline order matters — each script depends on outputs from previous steps. T
 | `results/counterfactuals.csv` | `generate_cf.py` | `cf_metrics.py`, `case_builder.py` |
 | `results/generation_policy.json` | `generate_cf.py` | `case_builder.py`, documentation/debugging |
 | `results/cf_metrics_per_instance.csv` | `cf_metrics.py` | `case_builder.py` |
-| `results/cases.json` | `case_builder.py` | `run_debate.py` |
+| `results/cases.json` | `case_builder.py` | `run_metrics_only.py`, `run_debate.py` |
 
 ## Critical Conventions
 
@@ -62,7 +63,6 @@ Pipeline order matters — each script depends on outputs from previous steps. T
 
 ## Placeholders & In-Progress Areas
 
-- `ground_truth_issues` in cases is always `[]` — no labeling function yet. `case_builder.build_cases()` accepts a `label_fn` callback for this.
-- SHAP integration is planned but not implemented.
+- `ground_truth_issues` in cases is always `[]` - no labeling function yet. `case_builder.build_cases()` accepts a `label_fn` callback for this.
 - `ground_truth_issues` still has no labeling function; heuristic labels are computed deterministically but are not a human gold standard.
 - Focused foundation tests live in `tests/test_foundation_policy.py`.

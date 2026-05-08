@@ -491,13 +491,21 @@ This will:
 
 ---
 
-### Step 4 — Compute counterfactual metrics (work in progress)
+### Step 4 - Compute counterfactual metrics (work in progress)
 
 ```bash
 python src/cf_metrics.py
 ```
 
 This step is currently being refined and should not yet be considered final.
+
+### Step 5 - Run the metrics-only baseline
+
+```bash
+python src/run_metrics_only.py
+```
+
+This converts the computed metrics and deterministic heuristic evidence in `results/cases.json` into Judge-compatible verdicts. It is the non-LLM baseline for later comparison with the single-LLM and multi-agent systems, not a substitute for human/team reference labels.
 
 ---
 
