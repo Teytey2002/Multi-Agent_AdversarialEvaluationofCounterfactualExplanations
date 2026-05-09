@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from data_loader import load_adult_dataset
+from pipeline.data_loader import load_adult_dataset
 
 
 CF_PATH = "results/counterfactuals.csv"

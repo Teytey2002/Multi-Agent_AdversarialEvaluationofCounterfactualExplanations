@@ -5,8 +5,8 @@ import pandas as pd
 import joblib
 import dice_ml
 
-from data_loader import load_adult_dataset
-from feature_policy import (
+from pipeline.data_loader import load_adult_dataset
+from policy.feature_policy import (
     ACTIONABLE_FEATURES,
     CONTINUOUS_FEATURES,
     DICE_DEFAULT_GENETIC_KWARGS,

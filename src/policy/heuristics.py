@@ -12,7 +12,7 @@ import math
 from numbers import Number
 from typing import Any, Mapping
 
-from feature_policy import (
+from policy.feature_policy import (
     ACTIONABLE_FEATURES_CANONICAL,
     AGE_MAX_INCREASE,
     CAPITAL_LARGE_JUMP_THRESHOLD,

@@ -3,11 +3,11 @@ import os
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
-from data_loader import load_adult_dataset
-from feature_policy import POLICY_NAME, select_model_features
-from preprocessing import build_preprocessor
-from models import get_model
-from utils import ensure_dir, evaluate_model, save_model, save_metrics
+from pipeline.data_loader import load_adult_dataset
+from pipeline.models import get_model
+from pipeline.preprocessing import build_preprocessor
+from pipeline.utils import ensure_dir, evaluate_model, save_model, save_metrics
+from policy.feature_policy import POLICY_NAME, select_model_features
 
 
 RANDOM_STATE = 42

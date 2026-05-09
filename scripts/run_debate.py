@@ -5,19 +5,19 @@ counterfactual evaluations on real pipeline cases.
 Usage examples
 --------------
 # Multi-agent debate (default: Groq / llama-3.1-8b-instant, round_robin)
-$env:PYTHONPATH="src"; python src/run_debate.py
+$env:PYTHONPATH="src"; python scripts/run_debate.py
 
 # Single-LLM baseline
-$env:PYTHONPATH="src"; python src/run_debate.py --single-llm
+$env:PYTHONPATH="src"; python scripts/run_debate.py --single-llm
 
 # Specific Groq model
-$env:PYTHONPATH="src"; python src/run_debate.py --model llama-3.3-70b-versatile
+$env:PYTHONPATH="src"; python scripts/run_debate.py --model llama-3.3-70b-versatile
 
 # Run only cases 0 and 2
-$env:PYTHONPATH="src"; python src/run_debate.py --case-ids 0 2
+$env:PYTHONPATH="src"; python scripts/run_debate.py --case-ids 0 2
 
 # Verbose + auto speaker selection
-$env:PYTHONPATH="src"; python src/run_debate.py --speaker-selection auto --verbose
+$env:PYTHONPATH="src"; python scripts/run_debate.py --speaker-selection auto --verbose
 """
 
 from __future__ import annotations

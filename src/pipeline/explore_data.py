@@ -6,7 +6,7 @@ Produces ``results/feature_catalog.json`` — a reference artifact that helps
 inform the issue taxonomy and agent prompt design.
 
 Usage (from repo root):
-    $env:PYTHONPATH="src"; python src/explore_data.py
+    $env:PYTHONPATH="src"; python -m pipeline.explore_data
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ from pathlib import Path
 
 import numpy as np
 
-from data_loader import load_adult_dataset
+from pipeline.data_loader import load_adult_dataset
 
 
 RESULTS_DIR = Path("results")

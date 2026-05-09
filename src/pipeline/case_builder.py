@@ -7,19 +7,19 @@ Each case corresponds to one unfavorable individual and contains:
   - all counterfactuals produced by DiCE (with per-CF confidence)
   - DiCE-paper quality metrics (proximity, sparsity, diversity …)
   - model-level performance context
-  - deterministic heuristic flags from heuristics.py
+  - deterministic heuristic flags from policy.heuristics
   - draft reference labels from annotations/ground_truth_labels.json
 
 Usage
 -----
 From the repo root:
 
-    python src/case_builder.py          # writes results/cases.json
-    python src/case_builder.py --pretty  # human-readable indent
+    python -m pipeline.case_builder          # writes results/cases.json
+    python -m pipeline.case_builder --pretty  # human-readable indent
 
-Programmatic (from src/ directory):
+Programmatic:
 
-    from case_builder import build_cases
+    from pipeline.case_builder import build_cases
     cases = build_cases()          # list[dict] ready for run_debate()
 """
 
@@ -33,12 +33,12 @@ from typing import Any, Callable
 import numpy as np
 import pandas as pd
 
-from feature_policy import (
+from policy.feature_policy import (
     FEATURE_ALIASES,
     RAW_FEATURE_COLUMNS,
     is_synchronized_education_label_change,
 )
-from heuristics import compute_heuristic_metrics
+from policy.heuristics import compute_heuristic_metrics
 
 
 # ---------------------------------------------------------------------------
@@ -105,7 +105,7 @@ def _with_aliases(row_dict: dict[str, Any]) -> dict[str, Any]:
     """Return a heuristics-friendly row with canonical underscore feature names.
     
     Converts hyphenated feature names (from CSV) to underscored names for consistency
-    with heuristics.py logic and issue taxonomy.
+    with policy.heuristics logic and issue taxonomy.
     """
     out: dict[str, Any] = {}
     for key, value in row_dict.items():

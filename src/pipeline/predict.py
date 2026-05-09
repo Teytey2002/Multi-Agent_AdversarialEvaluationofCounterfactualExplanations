@@ -2,8 +2,8 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from data_loader import load_adult_dataset
-from feature_policy import select_model_features
+from pipeline.data_loader import load_adult_dataset
+from policy.feature_policy import select_model_features
 
 
 MODEL_PATH = "models/logistic_regression.joblib"

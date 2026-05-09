@@ -3,7 +3,7 @@ import unittest
 import pandas as pd
 
 from agents.prompts import get_valid_issue_labels
-from feature_policy import (
+from policy.feature_policy import (
     DICE_DEFAULT_GENETIC_KWARGS,
     EDUCATION_NUM_TO_LABEL,
     MODEL_FEATURE_COLUMNS,
@@ -13,7 +13,7 @@ from feature_policy import (
     select_model_features,
     sync_education_labels,
 )
-from heuristics import compute_heuristic_metrics
+from policy.heuristics import compute_heuristic_metrics
 
 
 def _adult_frame() -> pd.DataFrame:
