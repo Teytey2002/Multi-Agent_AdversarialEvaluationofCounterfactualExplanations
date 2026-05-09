@@ -1,6 +1,6 @@
 # Pipeline Scripts — Per-Script Documentation
 
-> Quick reference for every script in `src/`.
+> Quick reference for pipeline modules in `src/pipeline/` and runnable entry points in `scripts/`.
 > Run order: **data_loader → explore_data → preprocessing → models → train → predict → generate_cf → cf_metrics → case_builder → run_metrics_only / run_debate**
 > (utils is a shared helper module; evaluators/ powers the deterministic baseline; agents/ is used by run_debate.)
 
@@ -8,10 +8,12 @@ All scripts must be executed from the **repo root** with `PYTHONPATH=src`:
 
 ```bash
 # PowerShell
-$env:PYTHONPATH="src"; python src/<script>.py
+$env:PYTHONPATH="src"; python -m pipeline.<module>
+$env:PYTHONPATH="src"; python scripts/<entrypoint>.py
 
 # Bash / Linux
-PYTHONPATH=src python src/<script>.py
+PYTHONPATH=src python -m pipeline.<module>
+PYTHONPATH=src python scripts/<entrypoint>.py
 ```
 
 ---
@@ -58,7 +60,7 @@ PYTHONPATH=src python src/<script>.py
 
 ### CLI
 ```bash
-$env:PYTHONPATH="src"; python src/explore_data.py
+$env:PYTHONPATH="src"; python -m pipeline.explore_data
 ```
 
 ### Inputs / Outputs
@@ -353,7 +355,7 @@ Not run directly — imported by `train.py`.
 
 ### CLI
 ```bash
-$env:PYTHONPATH="src"; python src/case_builder.py --pretty
+$env:PYTHONPATH="src"; python -m pipeline.case_builder --pretty
 ```
 
 ### Inputs / Outputs
@@ -425,9 +427,9 @@ $env:PYTHONPATH="src"; python src/case_builder.py --pretty
 
 ### CLI
 ```bash
-$env:PYTHONPATH="src"; python src/run_metrics_only.py
+$env:PYTHONPATH="src"; python scripts/run_metrics_only.py
 
-$env:PYTHONPATH="src"; python src/run_metrics_only.py --case-ids 0 3 5
+$env:PYTHONPATH="src"; python scripts/run_metrics_only.py --case-ids 0 3 5
 ```
 
 ### Inputs / Outputs
@@ -455,9 +457,9 @@ This baseline is **not ground truth**. It is one competitor in the comparison. H
 
 ### CLI
 ```bash
-$env:PYTHONPATH="src"; python src/visualize_metrics_only.py
+$env:PYTHONPATH="src"; python scripts/visualize_metrics_only.py
 
-$env:PYTHONPATH="src"; python src/visualize_metrics_only.py --input results/metrics_only_outputs/metrics_only_latest.json --output results/metrics_only_outputs/visuals/custom_summary.svg
+$env:PYTHONPATH="src"; python scripts/visualize_metrics_only.py --input results/metrics_only_outputs/metrics_only_latest.json --output results/metrics_only_outputs/visuals/custom_summary.svg
 ```
 
 ### Inputs / Outputs
@@ -769,13 +771,13 @@ The single-LLM evaluator uses the same verdict schema as the Judge, making resul
 ### Example commands
 ```bash
 # Multi-agent debate, all cases, Groq default
-$env:PYTHONPATH="src"; python src/run_debate.py
+$env:PYTHONPATH="src"; python scripts/run_debate.py
 
 # Single-LLM baseline, case 0 only, verbose
-$env:PYTHONPATH="src"; python src/run_debate.py --single-llm --case-ids 0 --verbose
+$env:PYTHONPATH="src"; python scripts/run_debate.py --single-llm --case-ids 0 --verbose
 
 # Alternative Groq model, auto speaker selection
-$env:PYTHONPATH="src"; python src/run_debate.py --model llama-3.3-70b-versatile --speaker-selection auto
+$env:PYTHONPATH="src"; python scripts/run_debate.py --model llama-3.3-70b-versatile --speaker-selection auto
 ```
 
 ### Inputs / Outputs

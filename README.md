@@ -160,7 +160,7 @@ Gradient boosted decision trees.
 
 ## 5. Repository Structure
 
-A clean modular structure was adopted to make the next project stages easier to implement.
+Current structure separates implementation code, runnable scripts, documentation, annotations, and generated artifacts. The maintained layout is in `docs/architecture/project_structure.md`; the compact sketch below is historical and will be removed when the README is next condensed.
 
 ```bash
 project/
@@ -193,7 +193,7 @@ The folder names may evolve slightly over time, but this is the intended structu
 
 ## 6. Scripts Overview
 
-### `src/data_loader.py`
+### `src/pipeline/data_loader.py`
 
 Responsible for loading the dataset.
 
@@ -206,7 +206,7 @@ This script centralizes data access so that the dataset can easily be replaced l
 
 ---
 
-### `src/preprocessing.py`
+### `src/pipeline/preprocessing.py`
 
 Builds the preprocessing pipeline.
 
@@ -224,7 +224,7 @@ This design ensures that preprocessing is learned on the training set and consis
 
 ---
 
-### `src/models.py`
+### `src/pipeline/models.py`
 
 Defines and returns the main classification model:
 
@@ -234,7 +234,7 @@ This separation makes it easy to add, remove, or tune models without changing th
 
 ---
 
-### `src/utils.py`
+### `src/pipeline/utils.py`
 
 Contains utility functions used across the project.
 
@@ -249,7 +249,7 @@ This avoids duplicating generic logic in the training script.
 
 ---
 
-### `src/train.py`
+### `src/pipeline/train.py`
 
 This is the main training script.
 
@@ -257,7 +257,7 @@ This is the main training script.
 
 1. creates output folders if needed
 2. loads the Adult dataset
-3. applies the feature policy from `src/feature_policy.py` (`education` is excluded from model inputs; `education-num` is kept)
+3. applies the feature policy from `src/policy/feature_policy.py` (`education` is excluded from model inputs; `education-num` is kept)
 4. splits the data into train and test sets
 5. builds the preprocessing pipeline
 6. trains the model
@@ -279,7 +279,7 @@ This is very convenient for later stages because the same object can be reused d
 
 ---
 
-### `src/predict.py`
+### `src/pipeline/predict.py`
 
 Used after training to run inference with the selected main model.
 
@@ -296,7 +296,7 @@ The goal of this script is to prepare input instances for counterfactual generat
 
 ---
 
-### `src/generate_cf.py`
+### `src/pipeline/generate_cf.py`
 
 Uses DiCE to generate counterfactual explanations with basic realism constraints..
 
@@ -319,7 +319,7 @@ This script is the first bridge between the predictive pipeline and the future e
 
 ---
 
-### `src/cf_metrics.py`
+### `src/pipeline/cf_metrics.py`
 
 Computes quantitative evaluation metrics for the generated counterfactual explanations, following the methodology described in the DiCE paper.
 
@@ -453,7 +453,7 @@ maintained.
 ### Step 1 — Train all models
 
 ```bash
-python src/train.py
+$env:PYTHONPATH="src"; python -m pipeline.train
 ```
 
 This will:
@@ -467,7 +467,7 @@ This will:
 ### Step 2 — Extract unfavorable samples
 
 ```bash
-python src/predict.py
+$env:PYTHONPATH="src"; python -m pipeline.predict
 ```
 
 This will:
@@ -481,7 +481,7 @@ This will:
 ### Step 3 — Generate counterfactuals
 
 ```bash
-python src/generate_cf.py
+$env:PYTHONPATH="src"; python -m pipeline.generate_cf
 ```
 
 This will:
@@ -494,7 +494,7 @@ This will:
 ### Step 4 - Compute counterfactual metrics (work in progress)
 
 ```bash
-python src/cf_metrics.py
+$env:PYTHONPATH="src"; python -m pipeline.cf_metrics
 ```
 
 This step is currently being refined and should not yet be considered final.
@@ -502,7 +502,7 @@ This step is currently being refined and should not yet be considered final.
 ### Step 5 - Run the metrics-only baseline
 
 ```bash
-python src/run_metrics_only.py
+$env:PYTHONPATH="src"; python scripts/run_metrics_only.py
 ```
 
 This converts the computed metrics and deterministic heuristic evidence in `results/cases.json` into Judge-compatible verdicts. It is the non-LLM baseline for later comparison with the single-LLM and multi-agent systems, not a substitute for human/team reference labels.
@@ -553,7 +553,7 @@ For an instance predicted as class `0`, DiCE searches for alternative values of 
 
 ### Current allowed features to vary
 
-The current policy is defined in `src/feature_policy.py`. It excludes raw `education` from model training because it duplicates the ordinal signal in `education-num`, then allows DiCE to vary:
+The current policy is defined in `src/policy/feature_policy.py`. It excludes raw `education` from model training because it duplicates the ordinal signal in `education-num`, then allows DiCE to vary:
 
 - `age` (increase only, bounded horizon)
 - `education-num` (increase only, checked against age increase)
@@ -597,7 +597,7 @@ Examples observed in the first outputs:
 
 ### 12.2 Actionability constraints are policy-driven but still limited
 
-Feature mutability now follows `src/feature_policy.py`. Protected or non-actionable features such as `race`, `sex`, `native-country`, and `fnlwgt` are frozen. Raw `education` is a derived display field synchronized from `education-num`. `age` and `education-num` are treated as long-term mutable features, but deterministic heuristics flag impossible time logic, such as decreasing age or increasing education without enough age increase.
+Feature mutability now follows `src/policy/feature_policy.py`. Protected or non-actionable features such as `race`, `sex`, `native-country`, and `fnlwgt` are frozen. Raw `education` is a derived display field synchronized from `education-num`. `age` and `education-num` are treated as long-term mutable features, but deterministic heuristics flag impossible time logic, such as decreasing age or increasing education without enough age increase.
 
 ### 12.3 Counterfactual metric computation is not finalized
 
@@ -638,7 +638,7 @@ Extend the calculated evidence passed to the agents so each verdict is grounded 
 
 This evidence can include:
 - per-counterfactual validity, proximity, sparsity, diversity, and confidence
-- deterministic issue labels and supporting numeric thresholds from `heuristics.py`
+- deterministic issue labels and supporting numeric thresholds from `src/policy/heuristics.py`
 - generation-policy context such as permitted ranges and frozen-feature checks
 
 ### 13.4 Build the multi-agent evaluation framework

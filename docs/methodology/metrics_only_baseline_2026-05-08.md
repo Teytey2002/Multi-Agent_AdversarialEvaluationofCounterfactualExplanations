@@ -52,7 +52,7 @@ Important distinction:
 
 ### New CLI runner
 
-`src/run_metrics_only.py`
+`scripts/run_metrics_only.py`
 
 This script loads `results/cases.json`, applies the deterministic evaluator, and writes structured results under:
 
@@ -252,13 +252,13 @@ This makes later comparison direct:
 From the repository root:
 
 ```powershell
-$env:PYTHONPATH="src"; .\.venv\Scripts\python.exe src\run_metrics_only.py
+$env:PYTHONPATH="src"; .\.venv\Scripts\python.exe scripts\run_metrics_only.py
 ```
 
 Run selected cases:
 
 ```powershell
-$env:PYTHONPATH="src"; .\.venv\Scripts\python.exe src\run_metrics_only.py --case-ids 0 3 8
+$env:PYTHONPATH="src"; .\.venv\Scripts\python.exe scripts\run_metrics_only.py --case-ids 0 3 8
 ```
 
 Outputs:
@@ -271,7 +271,7 @@ results/metrics_only_outputs/metrics_only_latest.json
 Visual summary:
 
 ```powershell
-$env:PYTHONPATH="src"; .\.venv\Scripts\python.exe src\visualize_metrics_only.py
+$env:PYTHONPATH="src"; .\.venv\Scripts\python.exe scripts\visualize_metrics_only.py
 ```
 
 This writes:
@@ -667,10 +667,10 @@ Instead:
 3. Regenerate cases and run evaluations:
 
 ```powershell
-$env:PYTHONPATH="src"; .\.venv\Scripts\python.exe src\case_builder.py --pretty
-$env:PYTHONPATH="src"; .\.venv\Scripts\python.exe src\run_metrics_only.py
-$env:PYTHONPATH="src"; .\.venv\Scripts\python.exe src\run_debate.py --single-llm
-$env:PYTHONPATH="src"; .\.venv\Scripts\python.exe src\run_debate.py
+$env:PYTHONPATH="src"; .\.venv\Scripts\python.exe -m pipeline.case_builder --pretty
+$env:PYTHONPATH="src"; .\.venv\Scripts\python.exe scripts\run_metrics_only.py
+$env:PYTHONPATH="src"; .\.venv\Scripts\python.exe scripts\run_debate.py --single-llm
+$env:PYTHONPATH="src"; .\.venv\Scripts\python.exe scripts\run_debate.py
 ```
 
 4. Compare all three systems against the same reference labels.

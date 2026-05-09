@@ -15,7 +15,7 @@ This update makes those decisions explicit and keeps them in one central module.
 
 ## New Feature Policy
 
-The source of truth is now `src/feature_policy.py`.
+The source of truth is now `src/policy/feature_policy.py`.
 
 Model training excludes:
 
@@ -57,7 +57,7 @@ The rationale is:
 
 ## DiCE Generation Changes
 
-`src/generate_cf.py` now reads the policy from `feature_policy.py`.
+`src/pipeline/generate_cf.py` now reads the policy from `policy.feature_policy`.
 
 The DiCE genetic configuration uses the library's reference/default values:
 
@@ -118,7 +118,7 @@ This is counted as one education intervention through `education-num`; the synch
 
 ## Box Constraints
 
-`src/explore_data.py` now adds numerical percentiles to `results/feature_catalog.json`.
+`src/pipeline/explore_data.py` now adds numerical percentiles to `results/feature_catalog.json`.
 
 `feature_policy.build_permitted_range()` now derives per-instance ranges from:
 
@@ -130,7 +130,7 @@ This replaces the previous fixed constants such as `hours-per-week: [20, 50]` an
 
 ## Heuristic And Taxonomy Changes
 
-`src/heuristics.py` now uses the centralized feature policy.
+`src/policy/heuristics.py` now uses the centralized feature policy.
 
 New scored issue label:
 
@@ -156,12 +156,12 @@ Unsynchronized `education` changes are also recorded as constraint violations be
 
 After the code changes, the pipeline was rerun through:
 
-1. `src/explore_data.py`
-2. `src/train.py`
-3. `src/predict.py`
-4. `src/generate_cf.py`
-5. `src/cf_metrics.py`
-6. `src/case_builder.py --pretty`
+1. `python -m pipeline.explore_data`
+2. `python -m pipeline.train`
+3. `python -m pipeline.predict`
+4. `python -m pipeline.generate_cf`
+5. `python -m pipeline.cf_metrics`
+6. `python -m pipeline.case_builder --pretty`
 
 Updated artifacts include:
 

@@ -21,7 +21,7 @@ Relevant code:
 |---|---|
 | `src/agents/debate.py` | Builds the prompt-safe case payload for both single-LLM and multi-agent runs. |
 | `src/agents/config.py` | Resolves Groq-only LLM configuration. Non-Groq providers now fail explicitly. |
-| `src/run_debate.py` | Runs either `--single-llm` or multi-agent debate and scores the verdict after generation. |
+| `scripts/run_debate.py` | Runs either `--single-llm` or multi-agent debate and scores the verdict after generation. |
 | `tests/test_single_llm_prompt_config.py` | Regression test proving ground-truth fields are excluded from the LLM prompt. |
 
 The fields `ground_truth_issues`, `ground_truth_by_cf`, and
@@ -35,7 +35,7 @@ after the LLM has produced a verdict.
 The project now uses Groq only.
 
 ```powershell
-$env:PYTHONPATH="src"; python src/run_debate.py --single-llm --max-tokens 400
+$env:PYTHONPATH="src"; python scripts/run_debate.py --single-llm --max-tokens 400
 ```
 
 Run configuration:

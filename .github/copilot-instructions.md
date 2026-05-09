@@ -7,13 +7,13 @@ Multi-agent adversarial evaluation of counterfactual explanations for the **Adul
 ## Architecture — Three Layers
 
 ```
-ML Pipeline (src/*.py)          →  Bridge (src/case_builder.py)  →  Evaluation
-train → predict → generate_cf      CSV/JSON → case dicts             metrics-only baseline
-→ cf_metrics                                                         or AutoGen single/multi-agent
+ML Pipeline (src/pipeline/)      →  Bridge (pipeline.case_builder)  →  Evaluation
+train → predict → generate_cf       CSV/JSON → case dicts              metrics-only baseline
+→ cf_metrics                                                          or AutoGen single/multi-agent
 ```
 
-- **ML pipeline** scripts are standalone (no classes), each reads upstream artifacts from `results/` or `models/`.
-- **Bridge layer** (`case_builder.py`) converts pipeline CSVs into a `cases.json` array consumed by the debate system. Each case has multiple CFs per individual (not one).
+- **ML pipeline** modules live in `src/pipeline/`; each reads upstream artifacts from `results/` or `models/`.
+- **Bridge layer** (`src/pipeline/case_builder.py`) converts pipeline CSVs into a `cases.json` array consumed by the debate system. Each case has multiple CFs per individual (not one).
 - **Evaluation layer** includes `src/evaluators/metrics_only.py` for the deterministic non-LLM baseline and `src/agents/` for AutoGen single-LLM / multi-agent runs. The AutoGen package has clean separation: `config.py` (Groq-only LLM configuration), `agents.py` (5 agent definitions), `debate.py` (orchestration), `prompts.py` (issue taxonomy), `utils.py` (JSON parsing, cost, transcripts).
 
 ## Running Scripts
@@ -21,13 +21,14 @@ train → predict → generate_cf      CSV/JSON → case dicts             metri
 **All scripts must run from the repo root with `PYTHONPATH=src`:**
 
 ```powershell
-$env:PYTHONPATH="src"; python src/train.py
-$env:PYTHONPATH="src"; python src/predict.py
-$env:PYTHONPATH="src"; python src/generate_cf.py
-$env:PYTHONPATH="src"; python src/cf_metrics.py
-$env:PYTHONPATH="src"; python src/case_builder.py --pretty
-$env:PYTHONPATH="src"; python src/run_metrics_only.py
-$env:PYTHONPATH="src"; python src/run_debate.py --verbose
+$env:PYTHONPATH="src"; python -m pipeline.explore_data
+$env:PYTHONPATH="src"; python -m pipeline.train
+$env:PYTHONPATH="src"; python -m pipeline.predict
+$env:PYTHONPATH="src"; python -m pipeline.generate_cf
+$env:PYTHONPATH="src"; python -m pipeline.cf_metrics
+$env:PYTHONPATH="src"; python -m pipeline.case_builder --pretty
+$env:PYTHONPATH="src"; python scripts/run_metrics_only.py
+$env:PYTHONPATH="src"; python scripts/run_debate.py --verbose
 ```
 
 Pipeline order matters - each script depends on outputs from previous steps. The full chain is: `explore_data → train → predict → generate_cf → cf_metrics → case_builder → run_metrics_only / run_debate`. (`explore_data` is optional but recommended before taxonomy work.)
@@ -47,7 +48,7 @@ Pipeline order matters - each script depends on outputs from previous steps. The
 ## Critical Conventions
 
 - **Model**: Logistic Regression (chosen over XGBoost for DiCE compatibility). Saved as a full sklearn `Pipeline` (preprocessor + classifier) via joblib.
-- **Feature policy**: Centralized in `src/feature_policy.py`. Raw `education` is excluded from model training because it duplicates `education-num`. DiCE may vary `age`, `education-num`, `workclass`, `occupation`, `hours-per-week`, `capital-gain`, and `capital-loss`; frozen features are `fnlwgt`, `marital-status`, `relationship`, `race`, `sex`, and `native-country`. Raw `education` is synchronized from `education-num` as a derived display label after generation.
+- **Feature policy**: Centralized in `src/policy/feature_policy.py`. Raw `education` is excluded from model training because it duplicates `education-num`. DiCE may vary `age`, `education-num`, `workclass`, `occupation`, `hours-per-week`, `capital-gain`, and `capital-loss`; frozen features are `fnlwgt`, `marital-status`, `relationship`, `race`, `sex`, and `native-country`. Raw `education` is synchronized from `education-num` as a derived display label after generation.
 - **DiCE method**: `"genetic"` with the reference/default genetic weights stored in `DICE_DEFAULT_GENETIC_KWARGS`. Per-instance `permitted_range` values are derived from empirical distributions and saved to `results/generation_policy.json`.
 - **JSON serialisation**: Always convert numpy/pandas types to plain Python before JSON dump. Use the `_safe_python()` pattern from `case_builder.py` (handles `np.integer`, `np.floating`, `np.bool_`, `NaN → None`).
 - **Verdict format**: Judge outputs JSON inside a ` ```json ` fenced block followed by `VERDICT_COMPLETE` on its own line. The parser in `agents/utils.py` handles fenced blocks, bare JSON, and inline objects as fallbacks.
