@@ -5,7 +5,7 @@ counterfactual evaluations on real pipeline cases.
 Usage examples
 --------------
 # Multi-agent debate (default: Groq / llama-3.1-8b-instant, round_robin)
-$env:PYTHONPATH="src"; python scripts/run_debate.py
+$env:PYTHONPATH="src"; python scripts/run_debate.py --max-rounds 1 --turn-delay 70 --max-tokens 350
 
 # Single-LLM baseline
 $env:PYTHONPATH="src"; python scripts/run_debate.py --single-llm
@@ -125,6 +125,8 @@ def parse_args() -> argparse.Namespace:
                    help=f"Path to cases JSON (default: {CASES_PATH}).")
     p.add_argument("--delay", type=int, default=None,
                    help="Seconds between cases for rate-limit cooldown.")
+    p.add_argument("--turn-delay", type=int, default=None,
+                   help="Seconds between specialist turns for multi-agent rate-limit pacing.")
     p.add_argument("--verbose", action="store_true",
                    help="Print agent messages to console.")
     return p.parse_args()
@@ -157,8 +159,9 @@ def main() -> None:
     cases = load_cases(Path(args.cases_file), case_ids=args.case_ids)
 
     # Groq Free Plan for llama-3.1-8b-instant is 30 RPM / 6K TPM / 14.4K RPD /
-    # 500K TPD. A conservative delay avoids tripping TPM with large case prompts.
+    # 500K TPD. Conservative delays avoid tripping TPM with large case prompts.
     delay = args.delay if args.delay is not None else 70
+    turn_delay = args.turn_delay if args.turn_delay is not None else (70 if not args.single_llm else 0)
 
     print(f"Mode:     {mode}")
     print(f"Provider: {llm_config.provider}")
@@ -168,6 +171,8 @@ def main() -> None:
     print(f"Cases:    {len(cases)} (IDs: {[c['case_id'] for c in cases]})")
     if delay:
         print(f"Delay:    {delay}s between cases")
+    if turn_delay:
+        print(f"Turn wait:{turn_delay}s between specialist turns")
     print()
 
     case_results: list[dict[str, Any]] = []
@@ -195,6 +200,7 @@ def main() -> None:
                     speaker_selection=args.speaker_selection,
                     max_rounds=args.max_rounds,
                     temperature=args.temperature, max_tokens=args.max_tokens,
+                    turn_delay=turn_delay,
                     verbose=args.verbose,
                 )
 
@@ -267,6 +273,7 @@ def main() -> None:
             "temperature":       llm_config.temperature,
             "max_tokens":        llm_config.max_tokens,
             "speaker_selection": "single_llm" if args.single_llm else args.speaker_selection,
+            "turn_delay":        0 if args.single_llm else turn_delay,
         },
         "summary": summary,
         "results": case_results,

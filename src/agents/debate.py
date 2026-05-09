@@ -245,6 +245,7 @@ async def run_debate_async(
     max_rounds: int = 2,
     temperature: float = 0.2,
     max_tokens: int = 700,
+    turn_delay: int = 0,
     verbose: bool = False,
 ) -> dict[str, Any]:
     """Run a multi-agent debate on a single case and return the result dict."""
@@ -307,6 +308,11 @@ Return only the participant name.
             transcript.append(entry)
             if verbose:
                 print(f"[{entry['source']}] {entry['content']}\n")
+            if (
+                turn_delay > 0
+                and entry.get("source") in SPECIALIST_NAMES
+            ):
+                await asyncio.sleep(turn_delay)
 
         judge_msgs = [t for t in transcript if t.get("source") == "Judge"]
         if not judge_msgs:
