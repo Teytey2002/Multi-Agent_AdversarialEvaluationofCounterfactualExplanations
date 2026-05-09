@@ -443,30 +443,38 @@ This baseline is **not ground truth**. It is one competitor in the comparison. H
 
 ---
 
-## 11. `visualize_metrics_only.py`
+## 11. `visualize_metrics_only.py` and `visualize_evaluations.py`
 
-**Purpose** - Render a dependency-free SVG dashboard from a metrics-only results JSON file.
+**Purpose** - Render dependency-free SVG dashboards from scored evaluation JSON files.
 
 ### Workflow
-1. Loads `results/metrics_only_outputs/metrics_only_latest.json` by default.
-2. Computes visual comparison summaries:
+1. `visualize_metrics_only.py` keeps the original metrics-only-only dashboard entry point.
+2. `visualize_evaluations.py` loads the latest metrics-only, single-LLM, and multi-agent outputs by default.
+3. Computes visual comparison summaries:
    - issue recall, precision, F1, exact match
-   - ground-truth vs metrics-only issue counts by label
-   - per-case match / missed issue / extra issue status
-3. Writes an SVG image to `results/metrics_only_outputs/visuals/metrics_only_summary.svg`.
+   - ground-truth vs system-predicted issue counts by label
+   - per-case match / missed / extra / mixed status
+   - cross-system comparison of precision, recall, F1, exact match, and issue divergence
+4. Writes SVG figures to `docs/reports/figures/` by default so report visuals can be committed.
 
 ### CLI
 ```bash
 $env:PYTHONPATH="src"; python scripts/visualize_metrics_only.py
 
 $env:PYTHONPATH="src"; python scripts/visualize_metrics_only.py --input results/metrics_only_outputs/metrics_only_latest.json --output results/metrics_only_outputs/visuals/custom_summary.svg
+
+$env:PYTHONPATH="src"; python scripts/visualize_evaluations.py
+
+$env:PYTHONPATH="src"; python scripts/visualize_evaluations.py single --input results/debate_outputs/llama-3.1-8b-instant_single_llm_latest.json --system-name "Single LLM" --output docs/reports/figures/single_llm_summary.svg
+
+$env:PYTHONPATH="src"; python scripts/visualize_evaluations.py compare --inputs results/metrics_only_outputs/metrics_only_latest.json results/debate_outputs/llama-3.1-8b-instant_single_llm_latest.json results/debate_outputs/llama-3.1-8b-instant_multi_agent_latest.json --system-names "Metrics-Only" "Single LLM" "Multi-Agent" --output docs/reports/figures/system_comparison_summary.svg
 ```
 
 ### Inputs / Outputs
 | | Description |
 |---|---|
-| **Input** | metrics-only results JSON |
-| **Output** | SVG visual summary |
+| **Input** | metrics-only, single-LLM, or multi-agent scored results JSON |
+| **Output** | SVG visual summaries and comparison figures |
 
 ---
 

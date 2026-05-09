@@ -17,7 +17,8 @@ repo/
 |-- scripts/
 |   |-- run_metrics_only.py
 |   |-- run_debate.py
-|   `-- visualize_metrics_only.py
+|   |-- visualize_metrics_only.py
+|   `-- visualize_evaluations.py
 |-- src/
 |   |-- agents/
 |   |-- evaluators/
@@ -56,5 +57,6 @@ $env:PYTHONPATH="src"; python -m pipeline.cf_metrics
 $env:PYTHONPATH="src"; python -m pipeline.case_builder --pretty
 $env:PYTHONPATH="src"; python scripts/run_metrics_only.py
 $env:PYTHONPATH="src"; python scripts/visualize_metrics_only.py
+$env:PYTHONPATH="src"; python scripts/visualize_evaluations.py
 $env:PYTHONPATH="src"; python scripts/run_debate.py --single-llm
 ```

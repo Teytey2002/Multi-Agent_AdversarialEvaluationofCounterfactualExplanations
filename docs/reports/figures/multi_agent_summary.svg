@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="850" viewBox="0 0 1200 850">
+<rect width="1200" height="850" fill="#f8fafc"/>
+<text x="42" y="54" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="700" fill="#172033">Multi-Agent Evaluation</text>
+<text x="42" y="82" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#667085">Run: 2026-05-09T10:04:46 | Compared against draft human-perspective labels</text>
+<rect x="42" y="112" width="250" height="110" rx="8" fill="#ffffff" stroke="#d0d5dd"/>
+<text x="60" y="140" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#667085">Issue Recall</text>
+<text x="60" y="176" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700" fill="#2f855a">66.7%</text>
+<text x="60" y="204" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#667085">18 / 27 labels caught</text>
+<rect x="318" y="112" width="250" height="110" rx="8" fill="#ffffff" stroke="#d0d5dd"/>
+<text x="336" y="140" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#667085">Issue Precision</text>
+<text x="336" y="176" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700" fill="#2563eb">54.5%</text>
+<text x="336" y="204" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#667085">15 extra issue(s)</text>
+<rect x="594" y="112" width="250" height="110" rx="8" fill="#ffffff" stroke="#d0d5dd"/>
+<text x="612" y="140" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#667085">Issue F1</text>
+<text x="612" y="176" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700" fill="#6d28d9">60.0%</text>
+<text x="612" y="204" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#667085">Balance of precision and recall</text>
+<rect x="870" y="112" width="250" height="110" rx="8" fill="#ffffff" stroke="#d0d5dd"/>
+<text x="888" y="140" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#667085">Exact Match</text>
+<text x="888" y="176" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700" fill="#b45309">0.0%</text>
+<text x="888" y="204" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#667085">0 / 10 cases</text>
+<rect x="42" y="254" width="620" height="282" rx="8" fill="#ffffff" stroke="#d0d5dd"/>
+<text x="60" y="285" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700" fill="#172033">Issue Coverage By Label</text>
+<text x="272" y="312" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#2f855a">Ground truth</text>
+<text x="442" y="312" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#2563eb">Multi-Agent</text>
+<text x="60" y="351" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#172033">fragile counterfactual</text>
+<rect x="272" y="338" width="128" height="12" rx="3" fill="#2f855a"/>
+<rect x="442" y="338" width="32" height="12" rx="3" fill="#2563eb"/>
+<text x="408" y="349" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="400" fill="#667085">8</text>
+<text x="482" y="349" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="400" fill="#667085">2</text>
+<text x="60" y="385" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#172033">implausible time dependent change</text>
+<rect x="272" y="372" width="112" height="12" rx="3" fill="#2f855a"/>
+<rect x="442" y="372" width="145" height="12" rx="3" fill="#2563eb"/>
+<text x="392" y="383" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="400" fill="#667085">7</text>
+<text x="595" y="383" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="400" fill="#667085">9</text>
+<text x="60" y="419" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#172033">inconsistent work profile</text>
+<rect x="272" y="406" width="48" height="12" rx="3" fill="#2f855a"/>
+<rect x="442" y="406" width="145" height="12" rx="3" fill="#2563eb"/>
+<text x="328" y="417" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="400" fill="#667085">3</text>
+<text x="595" y="417" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="400" fill="#667085">9</text>
+<text x="60" y="453" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#172033">too many changes</text>
+<rect x="272" y="440" width="64" height="12" rx="3" fill="#2f855a"/>
+<rect x="442" y="440" width="96" height="12" rx="3" fill="#2563eb"/>
+<text x="344" y="451" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="400" fill="#667085">4</text>
+<text x="546" y="451" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="400" fill="#667085">6</text>
+<text x="60" y="487" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#172033">unactionable capital shift</text>
+<rect x="272" y="474" width="80" height="12" rx="3" fill="#2f855a"/>
+<rect x="442" y="474" width="80" height="12" rx="3" fill="#2563eb"/>
+<text x="360" y="485" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="400" fill="#667085">5</text>
+<text x="530" y="485" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="400" fill="#667085">5</text>
+<text x="60" y="521" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#172033">extreme working hours</text>
+<rect x="272" y="508" width="0" height="12" rx="3" fill="#2f855a"/>
+<rect x="442" y="508" width="32" height="12" rx="3" fill="#2563eb"/>
+<text x="282" y="519" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="400" fill="#667085">0</text>
+<text x="482" y="519" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="400" fill="#667085">2</text>
+<rect x="676" y="254" width="500" height="282" rx="8" fill="#ffffff" stroke="#d0d5dd"/>
+<text x="694" y="285" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700" fill="#172033">Per-Case Agreement</text>
+<rect x="694" y="303" width="14" height="14" rx="3" fill="#dcfce7" stroke="#2f855a"/>
+<text x="714" y="315" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="400" fill="#667085">match</text>
+<rect x="798" y="303" width="14" height="14" rx="3" fill="#ffedd5" stroke="#c2410c"/>
+<text x="818" y="315" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="400" fill="#667085">missed</text>
+<rect x="902" y="303" width="14" height="14" rx="3" fill="#fef3c7" stroke="#b45309"/>
+<text x="922" y="315" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="400" fill="#667085">extra</text>
+<rect x="1006" y="303" width="14" height="14" rx="3" fill="#ede9fe" stroke="#6d28d9"/>
+<text x="1026" y="315" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="400" fill="#667085">mixed</text>
+<rect x="698" y="338" width="82" height="58" rx="7" fill="#ffedd5" stroke="#c2410c"/>
+<text x="710" y="361" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#c2410c">Case 0</text>
+<text x="710" y="383" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#c2410c">missed</text>
+<rect x="790" y="338" width="82" height="58" rx="7" fill="#ede9fe" stroke="#6d28d9"/>
+<text x="802" y="361" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#6d28d9">Case 1</text>
+<text x="802" y="383" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#6d28d9">mixed</text>
+<rect x="882" y="338" width="82" height="58" rx="7" fill="#fef3c7" stroke="#b45309"/>
+<text x="894" y="361" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#b45309">Case 2</text>
+<text x="894" y="383" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#b45309">extra</text>
+<rect x="974" y="338" width="82" height="58" rx="7" fill="#fef3c7" stroke="#b45309"/>
+<text x="986" y="361" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#b45309">Case 3</text>
+<text x="986" y="383" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#b45309">extra</text>
+<rect x="1066" y="338" width="82" height="58" rx="7" fill="#ede9fe" stroke="#6d28d9"/>
+<text x="1078" y="361" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#6d28d9">Case 4</text>
+<text x="1078" y="383" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#6d28d9">mixed</text>
+<rect x="698" y="414" width="82" height="58" rx="7" fill="#fef3c7" stroke="#b45309"/>
+<text x="710" y="437" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#b45309">Case 5</text>
+<text x="710" y="459" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#b45309">extra</text>
+<rect x="790" y="414" width="82" height="58" rx="7" fill="#ffedd5" stroke="#c2410c"/>
+<text x="802" y="437" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#c2410c">Case 6</text>
+<text x="802" y="459" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#c2410c">missed</text>
+<rect x="882" y="414" width="82" height="58" rx="7" fill="#ede9fe" stroke="#6d28d9"/>
+<text x="894" y="437" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#6d28d9">Case 7</text>
+<text x="894" y="459" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#6d28d9">mixed</text>
+<rect x="974" y="414" width="82" height="58" rx="7" fill="#ede9fe" stroke="#6d28d9"/>
+<text x="986" y="437" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#6d28d9">Case 8</text>
+<text x="986" y="459" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#6d28d9">mixed</text>
+<rect x="1066" y="414" width="82" height="58" rx="7" fill="#ede9fe" stroke="#6d28d9"/>
+<text x="1078" y="437" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#6d28d9">Case 9</text>
+<text x="1078" y="459" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#6d28d9">mixed</text>
+<text x="694" y="511" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#667085">Exact-match cases: none.</text>
+<rect x="42" y="560" width="1078" height="226" rx="8" fill="#ffffff" stroke="#d0d5dd"/>
+<text x="64" y="594" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#172033">Interpretation</text>
+<text x="64" y="626" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#172033">Multi-Agent catches 18 of 27 reference issues and exactly matches 0 of 10 cases.</text>
+<text x="64" y="654" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#c2410c">Most missed labels: fragile counterfactual (6), too many changes (2), unactionable capital shift (1).</text>
+<text x="64" y="682" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#b45309">Most extra labels: inconsistent work profile (6), too many changes (4), implausible time dependent change (2).</text>
+<text x="64" y="722" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#172033">Cost marker: $0.011197 estimated LLM cost.</text>
+<text x="64" y="754" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#667085">Use this dashboard to see whether the system improves semantic judgment without over-flagging issues.</text>
+</svg>
