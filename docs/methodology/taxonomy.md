@@ -15,7 +15,7 @@ This taxonomy defines issue labels used to evaluate counterfactual explanations.
 | Label | Trigger Condition |
 |---|---|
 | `extreme_working_hours` | Flag if `hours_per_week` reaches an unrealistic extreme (either dangerously high, or implausibly low for a >50K income). |
-| `inconsistent_work_profile` | Flag if work-related edits are internally inconsistent or temporally implausible (`workclass`, `occupation`, tenure, employment status). |
+| `inconsistent_work_profile` | Flag ONLY when workclass and occupation combinations directly contradict each other according to deterministic policy rules. (`workclass`, `occupation`, tenure, employment status). |
 | `implausible_time_dependent_change` | Flag if `age` or `education_num` changes violate time logic, such as age decreasing or education increasing without enough age increase. |
 | `unactionable_capital_shift` | Flag if `capital_gain` or `capital_loss` increases to a level that is financially unrealistic given the individual's baseline profile. |
 | `too_many_changes` | Flag if the counterfactual modifies an overwhelming number of features at once, placing an unrealistic burden on the individual. |
@@ -25,7 +25,7 @@ This taxonomy defines issue labels used to evaluate counterfactual explanations.
 
 #### Work Plausibility
 
-- **`inconsistent_work_profile`**: Work-related edits are internally inconsistent or temporally implausible. This mainly concerns changes to `workclass` and `occupation`.
+- **`inconsistent_work_profile`**: Flag ONLY when deterministic heuristic evidence reports a direct contradiction between `workclass` and `occupation`.
 
 #### Time-Dependent Plausibility
 
@@ -93,7 +93,7 @@ To avoid over-penalizing realistic edits, some feature pairs may be treated as o
 
 Apply this heuristic during burden counting:
 
-1. `workclass` + `occupation`: if the occupation shift is a plausible consequence of the workclass shift, count the pair as one major change.
+1. `workclass` + `occupation`: if the deterministic burden-counting policy treats the pair as one intervention, count the pair as one major change.
 2. `age` + `education_num`: if education increases and age increases enough to make the change temporally plausible, count the pair as one long-term intervention.
 
 Practical rule:
@@ -112,8 +112,8 @@ ISSUE_TAXONOMY = {
     ),
 
     "inconsistent_work_profile": (
-        "Flag if work-related edits are internally inconsistent or temporally "
-        "implausible, especially changes involving workclass and occupation."
+        "Flag ONLY when deterministic heuristic evidence reports a direct "
+        "workclass/occupation contradiction."
     ),
 
     "implausible_time_dependent_change": (

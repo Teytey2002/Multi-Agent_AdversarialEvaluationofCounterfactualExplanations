@@ -58,7 +58,6 @@ def _compact_heuristic_metrics(metrics: dict[str, Any]) -> dict[str, Any]:
         "flagged_issues": metrics.get("flagged_issues", []),
         "constraint_violations": metrics.get("constraint_violations", []),
         "issue_evidence": _compact_evidence(metrics.get("issue_evidence", {})),
-        "constraint_evidence": _compact_evidence(metrics.get("constraint_evidence", {})),
     }
 
 
@@ -163,7 +162,7 @@ Debate structure:
 
 Case data:
 ```json
-{json.dumps(prompt_case, indent=2)}
+{json.dumps(prompt_case, separators=(",", ":"))}
 ```
 """.strip()
 
@@ -188,7 +187,7 @@ Return the exact JSON schema requested in your system message.
 
 Case data:
 ```json
-{json.dumps(prompt_case, indent=2)}
+{json.dumps(prompt_case, separators=(",", ":"))}
 ```
 """.strip()
 
