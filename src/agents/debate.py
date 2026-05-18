@@ -17,7 +17,11 @@ from typing import Any, Sequence
 from autogen_agentchat.conditions import MaxMessageTermination, TextMentionTermination
 from autogen_agentchat.teams import SelectorGroupChat
 
-from agents.agents import build_debate_agents, build_single_evaluator_agent
+from agents.agents import (
+    SPECIALIST_OUTPUT_PROTOCOL,
+    build_debate_agents,
+    build_single_evaluator_agent,
+)
 from agents.config import LLMConfig, build_model_client, resolve_llm_config
 from agents.prompts import get_issue_guidance
 from agents.utils import calculate_cost, parse_judge_verdict, serialise_message
@@ -158,7 +162,15 @@ Allowed issue labels:
 Debate structure:
 - Up to {max_rounds} specialist rounds before the Judge gives the final verdict.
 - The Judge should only speak when selected at the end.
-- Base ALL arguments on the real data below — do not invent additional evidence.
+- Base ALL arguments on the real data below - do not invent additional evidence.
+
+Specialist response format for Prosecutor, Defense, and Expert_Witness only:
+{SPECIALIST_OUTPUT_PROTOCOL}
+
+Judge response format:
+- Ignore the specialist format.
+- Return exactly one fenced JSON verdict, followed by the completion sentinel
+  specified in the Judge system message.
 
 Case data:
 ```json
@@ -317,8 +329,26 @@ Return only the participant name.
         if not judge_msgs:
             raise RuntimeError("The Judge never produced a final message.")
 
-        raw_judge = judge_msgs[-1]["content"]
-        verdict = parse_judge_verdict(raw_judge)
+        raw_judge = ""
+        verdict = None
+        last_error: Exception | None = None
+        for judge_msg in reversed(judge_msgs):
+            candidate = str(judge_msg.get("content", "")).strip()
+            if not candidate:
+                continue
+            try:
+                verdict = parse_judge_verdict(candidate)
+                raw_judge = candidate
+                break
+            except ValueError as exc:
+                last_error = exc
+
+        if verdict is None:
+            snippet = str(judge_msgs[-1].get("content", ""))[:300]
+            raise ValueError(
+                "No parseable Judge verdict found. "
+                f"Last parse error: {last_error}. Last Judge snippet: {snippet!r}"
+            )
 
         return {
             "case_id":            case_data["case_id"],

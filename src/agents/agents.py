@@ -22,6 +22,28 @@ from agents.prompts import (
 )
 
 
+SPECIALIST_OUTPUT_PROTOCOL = """
+Specialist output protocol:
+- Use exactly this four-line format:
+  ISSUES_SUPPORTED_BY_EVIDENCE: <labels or none>
+  ISSUES_NOT_SUPPORTED_OR_OVERSTATED: <labels or none>
+  KEY_EVIDENCE: <short concrete evidence>
+  BOTTOM_LINE: <one sentence>
+- Maximum 90 words total.
+- Do not use nested bullets.
+- Do not copy taxonomy definitions.
+- Do not list every allowed issue label.
+- Mention only labels directly relevant to this case.
+- Do not produce JSON.
+- A scored issue is supported only if it appears in
+  heuristic_summary.flagged_issues_union or in a CF's
+  heuristic_metrics.flagged_issues.
+- Do not dismiss heuristic issue evidence just because a value is inside
+  generation_policy.permitted_range.
+- Constraint violations must be discussed separately from scored issues.
+""".strip()
+
+
 def build_debate_agents(model_client) -> dict[str, AssistantAgent]:
     """Create the 4 debate agents used in the multi-agent workflow."""
 
@@ -55,13 +77,14 @@ Constraint-violation guidance:
 Heuristic evidence guidance:
 {evidence_guidance}
 
+{SPECIALIST_OUTPUT_PROTOCOL}
+
 Rules:
 - Use only the scored issue labels above in `flagged_issues`.
 - Mention constraint violations separately when relevant.
 - Cite concrete feature values and changes from the case data.
 - Be concise and evidence-focused.
-- Do NOT ask for more data — argue from what is provided.
-- Do NOT produce JSON.
+- Do NOT ask for more data - argue from what is provided.
 """.strip(),
     )
 
@@ -98,11 +121,13 @@ Constraint-violation guidance:
 Heuristic evidence guidance:
 {evidence_guidance}
 
+{SPECIALIST_OUTPUT_PROTOCOL}
+
 Rules:
 - Use the same issue labels as the rest of the team.
 - Ground every claim in the case details (feature values, metrics, confidence).
 - Do NOT invent facts or use speculative reasoning.
-- Be concise and do NOT produce JSON.
+- Be concise.
 """.strip(),
     )
 
@@ -147,11 +172,12 @@ Constraint-violation guidance:
 Heuristic evidence guidance:
 {evidence_guidance}
 
+{SPECIALIST_OUTPUT_PROTOCOL}
+
 Rules:
-- Stay neutral and technical — you inform the debate, not advocate.
+- Stay neutral and technical - you inform the debate, not advocate.
 - Base ALL analysis on the actual data provided in the case.
 - Keep answers short and concrete.
-- Do NOT produce JSON.
 """.strip(),
     )
 
@@ -183,6 +209,11 @@ Output requirements:
 - Return exactly ONE JSON object inside a ```json fenced block.
 - After the JSON block, write VERDICT_COMPLETE on its own line.
 - Do NOT include any extra commentary before or after.
+- Ignore the specialist four-line format. The Judge must return only the JSON
+  verdict block plus VERDICT_COMPLETE.
+- Never output only VERDICT_COMPLETE.
+- Never write ISSUES_SUPPORTED_BY_EVIDENCE, ISSUES_NOT_SUPPORTED_OR_OVERSTATED,
+  KEY_EVIDENCE, or BOTTOM_LINE in the Judge response.
 
 JSON schema:
 {{
@@ -201,6 +232,13 @@ Decision rules:
 - Prefer "ambiguous" when the case is debatable but not clearly clean or unfair.
 - If is_false_negative is true, mention it in reasoning_summary, but do NOT add scored issues unless heuristic evidence supports them.
 - Keep reasoning_summary brief and factual.
+- Start from heuristic_summary.flagged_issues_union as the candidate scored issues.
+- You may remove a candidate issue only if the evidence is internally contradicted
+  or if specialists identify a clear deterministic reason it is overstated.
+- A value being inside generation_policy.permitted_range is NOT a deterministic
+  reason to remove an issue already supported by heuristic_metrics.issue_evidence.
+- You may add a scored issue only if it appears in at least one CF's
+  heuristic_metrics.flagged_issues.
 - ONLY flag an issue if explicit deterministic evidence exists.
 - heuristic_metrics.flagged_issues takes priority over subjective interpretation.
 - Do NOT infer additional labels from general plausibility reasoning.

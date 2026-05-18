@@ -8,9 +8,9 @@ ISSUE_TAXONOMY: dict[str, str] = {
     # Work Plausibility
     # ---------------------------------------------------------------------------
     "inconsistent_work_profile": (
-        "The counterfactual proposes work-related edits that are internally "
-        "inconsistent or temporally implausible, especially changes involving "
-        "workclass and occupation."
+        "Flag only when deterministic heuristic evidence explicitly reports "
+        "a direct workclass/occupation contradiction. Do not infer this label "
+        "from ordinary workclass or occupation changes."
     ),
 
     # ---------------------------------------------------------------------------
@@ -116,9 +116,17 @@ def get_evidence_guidance() -> str:
     """Explain how agents should use heuristic evidence."""
     return (
         "Use `heuristic_metrics.flagged_issues` as deterministic scored issue labels.\n"
+        "Taxonomy descriptions define possible labels; they are not evidence by "
+        "themselves. Do not add a scored label that is absent from both "
+        "`heuristic_summary.flagged_issues_union` and every CF-level "
+        "`heuristic_metrics.flagged_issues`.\n"
         "Use `heuristic_metrics.issue_evidence` to explain why an issue was flagged. "
         "When evidence gives numeric values, thresholds, or deltas, rely on those "
         "values instead of recalculating or guessing.\n"
+        "`generation_policy.permitted_range` is a DiCE generation bound, not an "
+        "actionability guarantee. A counterfactual can be inside the permitted "
+        "range and still be flagged by heuristic evidence such as a large capital "
+        "gain jump.\n"
         "Use `heuristic_metrics.constraint_violations` and "
         "`heuristic_metrics.constraint_evidence` separately from scored issues. "
         "These fields indicate possible pipeline/debugging problems, not ordinary "
