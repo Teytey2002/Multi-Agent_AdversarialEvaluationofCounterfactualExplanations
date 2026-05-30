@@ -2,7 +2,11 @@ import json
 import unittest
 from pathlib import Path
 
-from agents.agents import SPECIALIST_OUTPUT_PROTOCOL
+from agents.agents import (
+    SPECIALIST_OUTPUT_PROTOCOL,
+    SINGLE_EVALUATOR_PHASE2_CALIBRATION,
+    _build_single_evaluator_system_message,
+)
 from agents.config import resolve_llm_config
 from agents.debate import (
     _build_case_prompt,
@@ -69,6 +73,22 @@ class SingleLlmPromptConfigTests(unittest.TestCase):
         self.assertIn("Taxonomy descriptions define possible labels", evidence_guidance)
         self.assertIn("permitted_range", evidence_guidance)
         self.assertIn("not an actionability guarantee", evidence_guidance)
+
+    def test_single_evaluator_has_phase_2_substitution_calibration(self):
+        system_message = _build_single_evaluator_system_message()
+
+        self.assertIn("Phase 2 substitution calibration", system_message)
+        self.assertIn("metrics-only reference system", system_message)
+        self.assertIn("heuristic_summary.flagged_issues_union", system_message)
+        self.assertIn("Include every candidate issue", system_message)
+        self.assertIn("absent from both", system_message)
+        self.assertIn("fragile_counterfactual", system_message)
+        self.assertIn("Do not drop `fragile_counterfactual`", system_message)
+        self.assertIn("cf_confidence", system_message)
+        self.assertIn(
+            "not to invent a new evaluation policy",
+            SINGLE_EVALUATOR_PHASE2_CALIBRATION,
+        )
 
     def test_non_groq_provider_is_rejected(self):
         with self.assertRaises(ValueError):

@@ -44,6 +44,19 @@ Specialist output protocol:
 """.strip()
 
 
+SINGLE_EVALUATOR_PHASE2_CALIBRATION = """
+Phase 2 substitution calibration:
+- Your task is to approximate the metrics-only reference system, not to invent a new evaluation policy.
+- Treat deterministic heuristic evidence as the primary issue-label source.
+- Start from `heuristic_summary.flagged_issues_union` as candidate scored issues.
+- Include every candidate issue unless the case evidence internally contradicts it.
+- Do not add a scored label absent from both `heuristic_summary.flagged_issues_union` and all `counterfactuals[*].heuristic_metrics.flagged_issues`.
+- If `fragile_counterfactual` appears in case-level or CF-level heuristic flags, include it in `flagged_issues`.
+- Treat `cf_confidence` near the 0.5 decision boundary as prediction-robustness evidence.
+- Do not drop `fragile_counterfactual` because other issues are more severe.
+""".strip()
+
+
 def build_debate_agents(model_client) -> dict[str, AssistantAgent]:
     """Create the 4 debate agents used in the multi-agent workflow."""
 
@@ -257,28 +270,25 @@ Decision rules:
     }
 
 
-def build_single_evaluator_agent(model_client) -> AssistantAgent:
-    """Create a single-agent baseline for comparison against the debate."""
-
+def _build_single_evaluator_system_message() -> str:
+    """Build the calibrated Phase 2 single-evaluator system prompt."""
     issue_guidance = get_issue_guidance()
     constraint_guidance = get_constraint_guidance()
     evidence_guidance = get_evidence_guidance()
 
-    return AssistantAgent(
-        name="Single_Evaluator",
-        description="Evaluates the case alone and returns the same JSON schema as the Judge.",
-        model_client=model_client,
-        system_message=f"""
+    return f"""
 You are a single evaluator reviewing counterfactual explanations generated for
 an income-prediction model (Adult Income dataset, Logistic Regression).
 
 You do NOT get a debate. You must inspect the case data directly and return
 one structured verdict.
 
+{SINGLE_EVALUATOR_PHASE2_CALIBRATION}
+
 Consider:
 - Are the feature changes actionable and realistic?
-- Does the CF set have good sparsity (few changes) and reasonable proximity?
-- Are confidence scores healthy (well above 0.5)?
+- Does the CF set have good sparsity (few changes), reasonable proximity, and useful diversity?
+- Are confidence scores healthy (well above 0.5), or do CFs barely cross the decision boundary?
 - Is the individual a false negative (misclassified)?
 - Do any changes touch immutable or proxy features?
 
@@ -309,7 +319,17 @@ JSON schema:
 
 Rules:
 - Use ONLY the issue labels listed above.
-- Ground the verdict in the case details.
-- Use an empty list when no strong issue is present.
-""".strip(),
+- Ground the verdict in deterministic heuristic evidence and concrete case details.
+- Keep supported candidate labels even when another issue is more severe.
+- Use an empty list only when no strong issue is present in heuristic evidence.
+""".strip()
+
+
+def build_single_evaluator_agent(model_client) -> AssistantAgent:
+    """Create a single-agent baseline for comparison against the debate."""
+    return AssistantAgent(
+        name="Single_Evaluator",
+        description="Evaluates the case alone and returns the same JSON schema as the Judge.",
+        model_client=model_client,
+        system_message=_build_single_evaluator_system_message(),
     )

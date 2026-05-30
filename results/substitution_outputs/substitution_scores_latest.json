@@ -1,0 +1,193 @@
+{
+  "mode": "substitution_scoring",
+  "created_at": "2026-05-30T16:57:06",
+  "reference": "results\\metrics_only_outputs\\metrics_only_latest.json",
+  "systems_evaluated": {
+    "single_llm": "results\\debate_outputs\\llama-3.1-8b-instant_single_llm_latest.json"
+  },
+  "summary": {
+    "single_llm": {
+      "detection_rate": 96.0,
+      "false_positive_rate": 0.0,
+      "exact_match_rate": 90.0,
+      "assessment_agreement": 50.0,
+      "severity_agreement": 50.0,
+      "recommended_action_agreement": 60.0,
+      "total_cases": 10,
+      "cases_with_perfect_match": 9
+    }
+  },
+  "per_case": [
+    {
+      "case_id": 0,
+      "reference_flagged_issues": [
+        "fragile_counterfactual",
+        "implausible_time_dependent_change",
+        "too_many_changes",
+        "unactionable_capital_shift"
+      ],
+      "single_llm": {
+        "flagged_issues": [
+          "implausible_time_dependent_change",
+          "too_many_changes",
+          "unactionable_capital_shift"
+        ],
+        "missed_issues": [
+          "fragile_counterfactual"
+        ],
+        "extra_issues": [],
+        "exact_match": false
+      }
+    },
+    {
+      "case_id": 1,
+      "reference_flagged_issues": [
+        "fragile_counterfactual",
+        "implausible_time_dependent_change"
+      ],
+      "single_llm": {
+        "flagged_issues": [
+          "fragile_counterfactual",
+          "implausible_time_dependent_change"
+        ],
+        "missed_issues": [],
+        "extra_issues": [],
+        "exact_match": true
+      }
+    },
+    {
+      "case_id": 2,
+      "reference_flagged_issues": [
+        "fragile_counterfactual",
+        "too_many_changes",
+        "unactionable_capital_shift"
+      ],
+      "single_llm": {
+        "flagged_issues": [
+          "fragile_counterfactual",
+          "too_many_changes",
+          "unactionable_capital_shift"
+        ],
+        "missed_issues": [],
+        "extra_issues": [],
+        "exact_match": true
+      }
+    },
+    {
+      "case_id": 3,
+      "reference_flagged_issues": [
+        "unactionable_capital_shift"
+      ],
+      "single_llm": {
+        "flagged_issues": [
+          "unactionable_capital_shift"
+        ],
+        "missed_issues": [],
+        "extra_issues": [],
+        "exact_match": true
+      }
+    },
+    {
+      "case_id": 4,
+      "reference_flagged_issues": [
+        "extreme_working_hours",
+        "fragile_counterfactual",
+        "unactionable_capital_shift"
+      ],
+      "single_llm": {
+        "flagged_issues": [
+          "extreme_working_hours",
+          "fragile_counterfactual",
+          "unactionable_capital_shift"
+        ],
+        "missed_issues": [],
+        "extra_issues": [],
+        "exact_match": true
+      }
+    },
+    {
+      "case_id": 5,
+      "reference_flagged_issues": [
+        "fragile_counterfactual",
+        "implausible_time_dependent_change"
+      ],
+      "single_llm": {
+        "flagged_issues": [
+          "fragile_counterfactual",
+          "implausible_time_dependent_change"
+        ],
+        "missed_issues": [],
+        "extra_issues": [],
+        "exact_match": true
+      }
+    },
+    {
+      "case_id": 6,
+      "reference_flagged_issues": [
+        "implausible_time_dependent_change",
+        "too_many_changes",
+        "unactionable_capital_shift"
+      ],
+      "single_llm": {
+        "flagged_issues": [
+          "implausible_time_dependent_change",
+          "too_many_changes",
+          "unactionable_capital_shift"
+        ],
+        "missed_issues": [],
+        "extra_issues": [],
+        "exact_match": true
+      }
+    },
+    {
+      "case_id": 7,
+      "reference_flagged_issues": [
+        "fragile_counterfactual",
+        "implausible_time_dependent_change",
+        "too_many_changes"
+      ],
+      "single_llm": {
+        "flagged_issues": [
+          "fragile_counterfactual",
+          "implausible_time_dependent_change",
+          "too_many_changes"
+        ],
+        "missed_issues": [],
+        "extra_issues": [],
+        "exact_match": true
+      }
+    },
+    {
+      "case_id": 8,
+      "reference_flagged_issues": [
+        "fragile_counterfactual",
+        "implausible_time_dependent_change"
+      ],
+      "single_llm": {
+        "flagged_issues": [
+          "fragile_counterfactual",
+          "implausible_time_dependent_change"
+        ],
+        "missed_issues": [],
+        "extra_issues": [],
+        "exact_match": true
+      }
+    },
+    {
+      "case_id": 9,
+      "reference_flagged_issues": [
+        "fragile_counterfactual",
+        "implausible_time_dependent_change"
+      ],
+      "single_llm": {
+        "flagged_issues": [
+          "fragile_counterfactual",
+          "implausible_time_dependent_change"
+        ],
+        "missed_issues": [],
+        "extra_issues": [],
+        "exact_match": true
+      }
+    }
+  ]
+}

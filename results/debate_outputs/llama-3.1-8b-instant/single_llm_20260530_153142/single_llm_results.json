@@ -1,0 +1,450 @@
+{
+  "mode": "single_llm",
+  "created_at": "2026-05-30T15:42:32",
+  "config": {
+    "provider": "groq",
+    "model": "llama-3.1-8b-instant",
+    "temperature": 0.2,
+    "max_tokens": 400,
+    "speaker_selection": "single_llm",
+    "turn_delay": 0
+  },
+  "summary": {
+    "total_cases": 10,
+    "cases_with_issues": 10,
+    "clean_cases": 0,
+    "total_ground_truth_issues": 27,
+    "caught_issues": 20,
+    "false_positive_clean_cases": 0,
+    "detection_rate": 74.07,
+    "false_positive_rate": 0.0,
+    "exact_match_rate": 50.0,
+    "per_case": [
+      {
+        "case_id": 0,
+        "match": false,
+        "missed_issues": [
+          "fragile_counterfactual",
+          "inconsistent_work_profile"
+        ],
+        "extra_issues": []
+      },
+      {
+        "case_id": 1,
+        "match": true,
+        "missed_issues": [],
+        "extra_issues": []
+      },
+      {
+        "case_id": 2,
+        "match": false,
+        "missed_issues": [
+          "fragile_counterfactual",
+          "inconsistent_work_profile"
+        ],
+        "extra_issues": []
+      },
+      {
+        "case_id": 3,
+        "match": true,
+        "missed_issues": [],
+        "extra_issues": []
+      },
+      {
+        "case_id": 4,
+        "match": false,
+        "missed_issues": [],
+        "extra_issues": [
+          "extreme_working_hours"
+        ]
+      },
+      {
+        "case_id": 5,
+        "match": true,
+        "missed_issues": [],
+        "extra_issues": []
+      },
+      {
+        "case_id": 6,
+        "match": false,
+        "missed_issues": [
+          "implausible_time_dependent_change",
+          "inconsistent_work_profile"
+        ],
+        "extra_issues": []
+      },
+      {
+        "case_id": 7,
+        "match": false,
+        "missed_issues": [
+          "fragile_counterfactual"
+        ],
+        "extra_issues": []
+      },
+      {
+        "case_id": 8,
+        "match": true,
+        "missed_issues": [],
+        "extra_issues": []
+      },
+      {
+        "case_id": 9,
+        "match": true,
+        "missed_issues": [],
+        "extra_issues": []
+      }
+    ],
+    "failures": 0,
+    "successful_cases": 10
+  },
+  "results": [
+    {
+      "case_id": 0,
+      "domain": "income_prediction",
+      "ground_truth_issues": [
+        "fragile_counterfactual",
+        "implausible_time_dependent_change",
+        "inconsistent_work_profile",
+        "too_many_changes",
+        "unactionable_capital_shift"
+      ],
+      "prediction": "<=50K",
+      "verdict": {
+        "case_id": 0,
+        "overall_assessment": "unfair",
+        "flagged_issues": [
+          "implausible_time_dependent_change",
+          "too_many_changes",
+          "unactionable_capital_shift"
+        ],
+        "severity": "high",
+        "confidence": 0.7486286129286767,
+        "reasoning_summary": "Multiple counterfactuals propose unrealistic or extreme changes, including implausible time-dependent changes, unactionable capital shifts, and too many changes at once.",
+        "recommended_action": "reject"
+      },
+      "match": false,
+      "cost": {
+        "model": "llama-3.1-8b-instant",
+        "prompt_tokens": 3230,
+        "completion_tokens": 2389,
+        "total_tokens": 5619,
+        "estimated_cost_usd": 0.000353,
+        "used_fallback_estimate": false
+      },
+      "transcript_path": "C:\\Users\\Daniel\\Desktop\\University\\ULB\\Master\\MA2\\Current Trends Of AI\\Project\\repo\\Multi-Agent_AdversarialEvaluationofCounterfactualExplanations\\results\\debate_outputs\\llama-3.1-8b-instant\\single_llm_20260530_153142\\transcripts\\case_00_transcript.md",
+      "stop_reason": "completed",
+      "speaker_selection": "single_llm",
+      "raw_verdict_message": "```json\n{\n  \"case_id\": 0,\n  \"overall_assessment\": \"unfair\",\n  \"flagged_issues\": [\n    \"implausible_time_dependent_change\",\n    \"too_many_changes\",\n    \"unactionable_capital_shift\"\n  ],\n  \"severity\": \"high\",\n  \"confidence\": 0.7486286129286767,\n  \"reasoning_summary\": \"Multiple counterfactuals propose unrealistic or extreme changes, including implausible time-dependent changes, unactionable capital shifts, and too many changes at once.\",\n  \"recommended_action\": \"reject\"\n}\nVERDICT_COMPLETE\n```"
+    },
+    {
+      "case_id": 1,
+      "domain": "income_prediction",
+      "ground_truth_issues": [
+        "fragile_counterfactual",
+        "implausible_time_dependent_change"
+      ],
+      "prediction": "<=50K",
+      "verdict": {
+        "case_id": 1,
+        "overall_assessment": "unfair",
+        "flagged_issues": [
+          "fragile_counterfactual",
+          "implausible_time_dependent_change"
+        ],
+        "severity": "high",
+        "confidence": 0.6984027995929477,
+        "reasoning_summary": "The counterfactuals propose unrealistic changes in education_num and fragile confidence scores, indicating unfairness.",
+        "recommended_action": "reject"
+      },
+      "match": true,
+      "cost": {
+        "model": "llama-3.1-8b-instant",
+        "prompt_tokens": 2464,
+        "completion_tokens": 1637,
+        "total_tokens": 4101,
+        "estimated_cost_usd": 0.000254,
+        "used_fallback_estimate": false
+      },
+      "transcript_path": "C:\\Users\\Daniel\\Desktop\\University\\ULB\\Master\\MA2\\Current Trends Of AI\\Project\\repo\\Multi-Agent_AdversarialEvaluationofCounterfactualExplanations\\results\\debate_outputs\\llama-3.1-8b-instant\\single_llm_20260530_153142\\transcripts\\case_01_transcript.md",
+      "stop_reason": "completed",
+      "speaker_selection": "single_llm",
+      "raw_verdict_message": "```json\n{\n  \"case_id\": 1,\n  \"overall_assessment\": \"unfair\",\n  \"flagged_issues\": [\"implausible_time_dependent_change\", \"fragile_counterfactual\"],\n  \"severity\": \"high\",\n  \"confidence\": 0.6984027995929477,\n  \"reasoning_summary\": \"The counterfactuals propose unrealistic changes in education_num and fragile confidence scores, indicating unfairness.\",\n  \"recommended_action\": \"reject\"\n}\nVERDICT_COMPLETE\n```"
+    },
+    {
+      "case_id": 2,
+      "domain": "income_prediction",
+      "ground_truth_issues": [
+        "fragile_counterfactual",
+        "inconsistent_work_profile",
+        "too_many_changes",
+        "unactionable_capital_shift"
+      ],
+      "prediction": "<=50K",
+      "verdict": {
+        "case_id": 2,
+        "overall_assessment": "unfair",
+        "flagged_issues": [
+          "too_many_changes",
+          "unactionable_capital_shift"
+        ],
+        "severity": "high",
+        "confidence": 0.857479108159473,
+        "reasoning_summary": "The counterfactuals propose unrealistic changes in capital gain and occupation, and modify too many actionable features at once.",
+        "recommended_action": "reject"
+      },
+      "match": false,
+      "cost": {
+        "model": "llama-3.1-8b-instant",
+        "prompt_tokens": 3072,
+        "completion_tokens": 2228,
+        "total_tokens": 5300,
+        "estimated_cost_usd": 0.000332,
+        "used_fallback_estimate": false
+      },
+      "transcript_path": "C:\\Users\\Daniel\\Desktop\\University\\ULB\\Master\\MA2\\Current Trends Of AI\\Project\\repo\\Multi-Agent_AdversarialEvaluationofCounterfactualExplanations\\results\\debate_outputs\\llama-3.1-8b-instant\\single_llm_20260530_153142\\transcripts\\case_02_transcript.md",
+      "stop_reason": "completed",
+      "speaker_selection": "single_llm",
+      "raw_verdict_message": "```json\n{\n  \"case_id\": 2,\n  \"overall_assessment\": \"unfair\",\n  \"flagged_issues\": [\"too_many_changes\", \"unactionable_capital_shift\"],\n  \"severity\": \"high\",\n  \"confidence\": 0.857479108159473,\n  \"reasoning_summary\": \"The counterfactuals propose unrealistic changes in capital gain and occupation, and modify too many actionable features at once.\",\n  \"recommended_action\": \"reject\"\n}\nVERDICT_COMPLETE\n```"
+    },
+    {
+      "case_id": 3,
+      "domain": "income_prediction",
+      "ground_truth_issues": [
+        "unactionable_capital_shift"
+      ],
+      "prediction": "<=50K",
+      "verdict": {
+        "case_id": 3,
+        "overall_assessment": "unfair",
+        "flagged_issues": [
+          "unactionable_capital_shift"
+        ],
+        "severity": "high",
+        "confidence": 0.8884967975271738,
+        "reasoning_summary": "Counterfactuals propose unrealistic capital gain changes, exceeding the permitted range and causing a high burden on the individual.",
+        "recommended_action": "reject"
+      },
+      "match": true,
+      "cost": {
+        "model": "llama-3.1-8b-instant",
+        "prompt_tokens": 2508,
+        "completion_tokens": 1666,
+        "total_tokens": 4174,
+        "estimated_cost_usd": 0.000259,
+        "used_fallback_estimate": false
+      },
+      "transcript_path": "C:\\Users\\Daniel\\Desktop\\University\\ULB\\Master\\MA2\\Current Trends Of AI\\Project\\repo\\Multi-Agent_AdversarialEvaluationofCounterfactualExplanations\\results\\debate_outputs\\llama-3.1-8b-instant\\single_llm_20260530_153142\\transcripts\\case_03_transcript.md",
+      "stop_reason": "completed",
+      "speaker_selection": "single_llm",
+      "raw_verdict_message": "```json\n{\n  \"case_id\": 3,\n  \"overall_assessment\": \"unfair\",\n  \"flagged_issues\": [\"unactionable_capital_shift\"],\n  \"severity\": \"high\",\n  \"confidence\": 0.8884967975271738,\n  \"reasoning_summary\": \"Counterfactuals propose unrealistic capital gain changes, exceeding the permitted range and causing a high burden on the individual.\",\n  \"recommended_action\": \"reject\"\n}\nVERDICT_COMPLETE\n```"
+    },
+    {
+      "case_id": 4,
+      "domain": "income_prediction",
+      "ground_truth_issues": [
+        "fragile_counterfactual",
+        "unactionable_capital_shift"
+      ],
+      "prediction": "<=50K",
+      "verdict": {
+        "case_id": 4,
+        "overall_assessment": "unfair",
+        "flagged_issues": [
+          "extreme_working_hours",
+          "fragile_counterfactual",
+          "unactionable_capital_shift"
+        ],
+        "severity": "high",
+        "confidence": 0.5124429518701719,
+        "reasoning_summary": "The counterfactuals propose unrealistic or extreme changes, such as a large capital gain jump and a decrease in working hours, and barely reach the favorable class.",
+        "recommended_action": "review"
+      },
+      "match": false,
+      "cost": {
+        "model": "llama-3.1-8b-instant",
+        "prompt_tokens": 2666,
+        "completion_tokens": 1826,
+        "total_tokens": 4492,
+        "estimated_cost_usd": 0.000279,
+        "used_fallback_estimate": false
+      },
+      "transcript_path": "C:\\Users\\Daniel\\Desktop\\University\\ULB\\Master\\MA2\\Current Trends Of AI\\Project\\repo\\Multi-Agent_AdversarialEvaluationofCounterfactualExplanations\\results\\debate_outputs\\llama-3.1-8b-instant\\single_llm_20260530_153142\\transcripts\\case_04_transcript.md",
+      "stop_reason": "completed",
+      "speaker_selection": "single_llm",
+      "raw_verdict_message": "```json\n{\n  \"case_id\": 4,\n  \"overall_assessment\": \"unfair\",\n  \"flagged_issues\": [\"fragile_counterfactual\", \"unactionable_capital_shift\", \"extreme_working_hours\"],\n  \"severity\": \"high\",\n  \"confidence\": 0.5124429518701719,\n  \"reasoning_summary\": \"The counterfactuals propose unrealistic or extreme changes, such as a large capital gain jump and a decrease in working hours, and barely reach the favorable class.\",\n  \"recommended_action\": \"review\"\n}\nVERDICT_COMPLETE\n```"
+    },
+    {
+      "case_id": 5,
+      "domain": "income_prediction",
+      "ground_truth_issues": [
+        "fragile_counterfactual",
+        "implausible_time_dependent_change"
+      ],
+      "prediction": "<=50K",
+      "verdict": {
+        "case_id": 5,
+        "overall_assessment": "unfair",
+        "flagged_issues": [
+          "fragile_counterfactual",
+          "implausible_time_dependent_change"
+        ],
+        "severity": "medium",
+        "confidence": 0.5673164206363938,
+        "reasoning_summary": "Two counterfactuals have low confidence and implausible changes, indicating an unfair prediction.",
+        "recommended_action": "review"
+      },
+      "match": true,
+      "cost": {
+        "model": "llama-3.1-8b-instant",
+        "prompt_tokens": 2200,
+        "completion_tokens": 1395,
+        "total_tokens": 3595,
+        "estimated_cost_usd": 0.000222,
+        "used_fallback_estimate": false
+      },
+      "transcript_path": "C:\\Users\\Daniel\\Desktop\\University\\ULB\\Master\\MA2\\Current Trends Of AI\\Project\\repo\\Multi-Agent_AdversarialEvaluationofCounterfactualExplanations\\results\\debate_outputs\\llama-3.1-8b-instant\\single_llm_20260530_153142\\transcripts\\case_05_transcript.md",
+      "stop_reason": "completed",
+      "speaker_selection": "single_llm",
+      "raw_verdict_message": "```json\n{\n  \"case_id\": 5,\n  \"overall_assessment\": \"unfair\",\n  \"flagged_issues\": [\"fragile_counterfactual\", \"implausible_time_dependent_change\"],\n  \"severity\": \"medium\",\n  \"confidence\": 0.5673164206363938,\n  \"reasoning_summary\": \"Two counterfactuals have low confidence and implausible changes, indicating an unfair prediction.\",\n  \"recommended_action\": \"review\"\n}\nVERDICT_COMPLETE\n```"
+    },
+    {
+      "case_id": 6,
+      "domain": "income_prediction",
+      "ground_truth_issues": [
+        "implausible_time_dependent_change",
+        "inconsistent_work_profile",
+        "too_many_changes",
+        "unactionable_capital_shift"
+      ],
+      "prediction": "<=50K",
+      "verdict": {
+        "case_id": 6,
+        "overall_assessment": "unfair",
+        "flagged_issues": [
+          "too_many_changes",
+          "unactionable_capital_shift"
+        ],
+        "severity": "high",
+        "confidence": 0.8592496700392993,
+        "reasoning_summary": "Counterfactuals propose unrealistic changes in multiple features, including capital gain and occupation, which may be financially or practically unactionable.",
+        "recommended_action": "reject"
+      },
+      "match": false,
+      "cost": {
+        "model": "llama-3.1-8b-instant",
+        "prompt_tokens": 3080,
+        "completion_tokens": 2253,
+        "total_tokens": 5333,
+        "estimated_cost_usd": 0.000334,
+        "used_fallback_estimate": false
+      },
+      "transcript_path": "C:\\Users\\Daniel\\Desktop\\University\\ULB\\Master\\MA2\\Current Trends Of AI\\Project\\repo\\Multi-Agent_AdversarialEvaluationofCounterfactualExplanations\\results\\debate_outputs\\llama-3.1-8b-instant\\single_llm_20260530_153142\\transcripts\\case_06_transcript.md",
+      "stop_reason": "completed",
+      "speaker_selection": "single_llm",
+      "raw_verdict_message": "```json\n{\n  \"case_id\": 6,\n  \"overall_assessment\": \"unfair\",\n  \"flagged_issues\": [\"too_many_changes\", \"unactionable_capital_shift\"],\n  \"severity\": \"high\",\n  \"confidence\": 0.8592496700392993,\n  \"reasoning_summary\": \"Counterfactuals propose unrealistic changes in multiple features, including capital gain and occupation, which may be financially or practically unactionable.\",\n  \"recommended_action\": \"reject\"\n}\nVERDICT_COMPLETE\n```"
+    },
+    {
+      "case_id": 7,
+      "domain": "income_prediction",
+      "ground_truth_issues": [
+        "fragile_counterfactual",
+        "implausible_time_dependent_change",
+        "too_many_changes"
+      ],
+      "prediction": "<=50K",
+      "verdict": {
+        "case_id": 7,
+        "overall_assessment": "unfair",
+        "flagged_issues": [
+          "implausible_time_dependent_change",
+          "too_many_changes"
+        ],
+        "severity": "high",
+        "confidence": 0.6384950814596438,
+        "reasoning_summary": "The counterfactuals propose unrealistic changes, such as increasing education_num without sufficient age increase, and modifying too many actionable features at once.",
+        "recommended_action": "reject"
+      },
+      "match": false,
+      "cost": {
+        "model": "llama-3.1-8b-instant",
+        "prompt_tokens": 2712,
+        "completion_tokens": 1903,
+        "total_tokens": 4615,
+        "estimated_cost_usd": 0.000288,
+        "used_fallback_estimate": false
+      },
+      "transcript_path": "C:\\Users\\Daniel\\Desktop\\University\\ULB\\Master\\MA2\\Current Trends Of AI\\Project\\repo\\Multi-Agent_AdversarialEvaluationofCounterfactualExplanations\\results\\debate_outputs\\llama-3.1-8b-instant\\single_llm_20260530_153142\\transcripts\\case_07_transcript.md",
+      "stop_reason": "completed",
+      "speaker_selection": "single_llm",
+      "raw_verdict_message": "```json\n{\n  \"case_id\": 7,\n  \"overall_assessment\": \"unfair\",\n  \"flagged_issues\": [\"implausible_time_dependent_change\", \"too_many_changes\"],\n  \"severity\": \"high\",\n  \"confidence\": 0.6384950814596438,\n  \"reasoning_summary\": \"The counterfactuals propose unrealistic changes, such as increasing education_num without sufficient age increase, and modifying too many actionable features at once.\",\n  \"recommended_action\": \"reject\"\n}\nVERDICT_COMPLETE\n```"
+    },
+    {
+      "case_id": 8,
+      "domain": "income_prediction",
+      "ground_truth_issues": [
+        "fragile_counterfactual",
+        "implausible_time_dependent_change"
+      ],
+      "prediction": "<=50K",
+      "verdict": {
+        "case_id": 8,
+        "overall_assessment": "unfair",
+        "flagged_issues": [
+          "fragile_counterfactual",
+          "implausible_time_dependent_change"
+        ],
+        "severity": "high",
+        "confidence": 0.6579758236548945,
+        "reasoning_summary": "The counterfactuals propose unrealistic changes in education_num without corresponding age increases and barely reach the favorable class, indicating a fragile counterfactual.",
+        "recommended_action": "review"
+      },
+      "match": true,
+      "cost": {
+        "model": "llama-3.1-8b-instant",
+        "prompt_tokens": 2474,
+        "completion_tokens": 1656,
+        "total_tokens": 4130,
+        "estimated_cost_usd": 0.000256,
+        "used_fallback_estimate": false
+      },
+      "transcript_path": "C:\\Users\\Daniel\\Desktop\\University\\ULB\\Master\\MA2\\Current Trends Of AI\\Project\\repo\\Multi-Agent_AdversarialEvaluationofCounterfactualExplanations\\results\\debate_outputs\\llama-3.1-8b-instant\\single_llm_20260530_153142\\transcripts\\case_08_transcript.md",
+      "stop_reason": "completed",
+      "speaker_selection": "single_llm",
+      "raw_verdict_message": "```json\n{\n  \"case_id\": 8,\n  \"overall_assessment\": \"unfair\",\n  \"flagged_issues\": [\"implausible_time_dependent_change\", \"fragile_counterfactual\"],\n  \"severity\": \"high\",\n  \"confidence\": 0.6579758236548945,\n  \"reasoning_summary\": \"The counterfactuals propose unrealistic changes in education_num without corresponding age increases and barely reach the favorable class, indicating a fragile counterfactual.\",\n  \"recommended_action\": \"review\"\n}\nVERDICT_COMPLETE\n```"
+    },
+    {
+      "case_id": 9,
+      "domain": "income_prediction",
+      "ground_truth_issues": [
+        "fragile_counterfactual",
+        "implausible_time_dependent_change"
+      ],
+      "prediction": "<=50K",
+      "verdict": {
+        "case_id": 9,
+        "overall_assessment": "unfair",
+        "flagged_issues": [
+          "fragile_counterfactual",
+          "implausible_time_dependent_change"
+        ],
+        "severity": "high",
+        "confidence": 0.5265686818268761,
+        "reasoning_summary": "The counterfactuals propose unrealistic changes in education_num and have low confidence scores, indicating a fragile counterfactual.",
+        "recommended_action": "review"
+      },
+      "match": true,
+      "cost": {
+        "model": "llama-3.1-8b-instant",
+        "prompt_tokens": 2602,
+        "completion_tokens": 1776,
+        "total_tokens": 4378,
+        "estimated_cost_usd": 0.000272,
+        "used_fallback_estimate": false
+      },
+      "transcript_path": "C:\\Users\\Daniel\\Desktop\\University\\ULB\\Master\\MA2\\Current Trends Of AI\\Project\\repo\\Multi-Agent_AdversarialEvaluationofCounterfactualExplanations\\results\\debate_outputs\\llama-3.1-8b-instant\\single_llm_20260530_153142\\transcripts\\case_09_transcript.md",
+      "stop_reason": "completed",
+      "speaker_selection": "single_llm",
+      "raw_verdict_message": "```json\n{\n  \"case_id\": 9,\n  \"overall_assessment\": \"unfair\",\n  \"flagged_issues\": [\"implausible_time_dependent_change\", \"fragile_counterfactual\"],\n  \"severity\": \"high\",\n  \"confidence\": 0.5265686818268761,\n  \"reasoning_summary\": \"The counterfactuals propose unrealistic changes in education_num and have low confidence scores, indicating a fragile counterfactual.\",\n  \"recommended_action\": \"review\"\n}\nVERDICT_COMPLETE\n```"
+    }
+  ]
+}
