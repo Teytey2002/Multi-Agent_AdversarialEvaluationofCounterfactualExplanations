@@ -18,7 +18,6 @@ CRITICAL_ISSUES = {
     "unactionable_capital_shift",
     "implausible_time_dependent_change",
     "extreme_working_hours",
-    "inconsistent_work_profile",
 }
 
 METRIC_WARNING_THRESHOLDS = {
@@ -26,6 +25,7 @@ METRIC_WARNING_THRESHOLDS = {
     "sparsity_low": 0.65,
     "continuous_proximity_low": -1.0,
     "categorical_proximity_low": 0.70,
+    "count_diversity_low": 0.2,
 }
 
 
@@ -94,6 +94,13 @@ def _metric_warnings(metrics: dict[str, Any]) -> list[str]:
         and categorical_proximity < METRIC_WARNING_THRESHOLDS["categorical_proximity_low"]
     ):
         warnings.append("low_categorical_proximity")
+
+    count_diversity = _as_float(metrics.get("count_diversity"))
+    if (
+        count_diversity is not None
+        and count_diversity < METRIC_WARNING_THRESHOLDS["count_diversity_low"]
+    ):
+        warnings.append("low_count_diversity")
 
     return warnings
 

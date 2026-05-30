@@ -23,11 +23,10 @@ By the end, any team member reading this cold should be able to explain what eac
 
 The most important framing for this module: the taxonomy is not a list of labels — it is a **contract**. Every consumer in the pipeline agrees to use the same strings with the same meanings. Mismatches don't raise errors; they silently mis-score.
 
-### `ISSUE_TAXONOMY` — the six scored labels
+### `ISSUE_TAXONOMY` — the five active scored labels
 
 | Label | Meaning |
 |---|---|
-| `inconsistent_work_profile` | workclass / occupation combination is contradictory (flagged only when heuristic evidence directly supports it). |
 | `implausible_time_dependent_change` | age / education_num change violates time logic. |
 | `extreme_working_hours` | hours_per_week reaches an unrealistic extreme or large jump. |
 | `unactionable_capital_shift` | capital_gain / capital_loss change is financially implausible. |
@@ -35,6 +34,8 @@ The most important framing for this module: the taxonomy is not a list of labels
 | `fragile_counterfactual` | cf_confidence barely above 0.5; the CF is brittle. |
 
 These are the only labels agents may put into `flagged_issues`. Anything else is invalid.
+
+> **Phase 2 note.** `inconsistent_work_profile` was removed from the active taxonomy after the methodology pivot. The LLM systems are now evaluated for substitution feasibility against the metrics-only reference system. See the [Phase 2 overview](phase_2/phase_2_overview.md).
 
 ### `CONSTRAINT_VIOLATION_GUIDANCE` — three pipeline-correctness categories
 
@@ -320,7 +321,7 @@ A `*_latest.json` copy at the directory root is used by the visualization layer 
 
 ## Key takeaways
 
-The taxonomy-as-contract framing is the most important conceptual point in this entire session. The six scored labels bind heuristics, agent prompts, the metrics-only baseline, and the reference annotations to the same strings and meanings. Mismatches don't produce errors — they silently corrupt scoring. The four-way sync rule is non-negotiable; it's what keeps the three evaluation systems comparable.
+The taxonomy-as-contract framing is the most important conceptual point in this entire session. The active scored labels bind heuristics, agent prompts, the metrics-only baseline, and the reference annotations to the same strings and meanings. As of Phase 2, that active set has five labels; the removal rationale is documented in the [Phase 2 overview](phase_2/phase_2_overview.md). Mismatches don't produce errors — they silently corrupt scoring. The four-way sync rule is non-negotiable; it's what keeps the three evaluation systems comparable.
 
 Three other points deserve particular attention:
 

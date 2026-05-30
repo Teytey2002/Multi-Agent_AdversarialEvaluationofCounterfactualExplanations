@@ -4,14 +4,8 @@ from __future__ import annotations
 
 
 ISSUE_TAXONOMY: dict[str, str] = {
-    # ---------------------------------------------------------------------------
-    # Work Plausibility
-    # ---------------------------------------------------------------------------
-    "inconsistent_work_profile": (
-        "Flag only when deterministic heuristic evidence explicitly reports "
-        "a direct workclass/occupation contradiction. Do not infer this label "
-        "from ordinary workclass or occupation changes."
-    ),
+    # Removed in Phase 2 — see docs/walkthrough/phase_2/.
+    # May return as two distinct symmetric signals later.
 
     # ---------------------------------------------------------------------------
     # Time-Dependent Plausibility

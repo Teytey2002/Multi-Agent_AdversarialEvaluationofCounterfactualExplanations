@@ -4,7 +4,6 @@
   "annotation_status": "initial_codex_human_perspective_draft_for_team_review",
   "taxonomy_labels": [
     "extreme_working_hours",
-    "inconsistent_work_profile",
     "implausible_time_dependent_change",
     "unactionable_capital_shift",
     "too_many_changes",
@@ -15,31 +14,26 @@
       "ground_truth_issues": [
         "fragile_counterfactual",
         "implausible_time_dependent_change",
-        "inconsistent_work_profile",
         "too_many_changes",
         "unactionable_capital_shift"
       ],
       "ground_truth_by_cf": {
         "0": [
           "fragile_counterfactual",
-          "inconsistent_work_profile",
           "too_many_changes",
           "unactionable_capital_shift"
         ],
         "1": [
           "implausible_time_dependent_change",
-          "inconsistent_work_profile",
           "too_many_changes",
           "unactionable_capital_shift"
         ],
         "2": [
-          "inconsistent_work_profile",
           "too_many_changes",
           "unactionable_capital_shift"
         ],
         "3": [
           "implausible_time_dependent_change",
-          "inconsistent_work_profile",
           "too_many_changes",
           "unactionable_capital_shift"
         ]
@@ -66,13 +60,11 @@
     "2": {
       "ground_truth_issues": [
         "fragile_counterfactual",
-        "inconsistent_work_profile",
         "too_many_changes",
         "unactionable_capital_shift"
       ],
       "ground_truth_by_cf": {
         "0": [
-          "inconsistent_work_profile",
           "too_many_changes",
           "unactionable_capital_shift"
         ],
@@ -149,14 +141,12 @@
     "6": {
       "ground_truth_issues": [
         "implausible_time_dependent_change",
-        "inconsistent_work_profile",
         "too_many_changes",
         "unactionable_capital_shift"
       ],
       "ground_truth_by_cf": {
         "0": [
           "implausible_time_dependent_change",
-          "inconsistent_work_profile",
           "too_many_changes",
           "unactionable_capital_shift"
         ],

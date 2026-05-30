@@ -52,11 +52,20 @@ class SingleLlmPromptConfigTests(unittest.TestCase):
         self.assertIn("Do not copy taxonomy definitions", SPECIALIST_OUTPUT_PROTOCOL)
         self.assertIn("Do not produce JSON", SPECIALIST_OUTPUT_PROTOCOL)
 
-    def test_issue_guidance_narrows_work_profile_to_deterministic_evidence(self):
+    def test_issue_guidance_uses_phase_2_five_label_taxonomy(self):
         issue_guidance = get_issue_guidance()
         evidence_guidance = get_evidence_guidance()
+        expected_labels = {
+            "extreme_working_hours",
+            "implausible_time_dependent_change",
+            "unactionable_capital_shift",
+            "too_many_changes",
+            "fragile_counterfactual",
+        }
 
-        self.assertIn("direct workclass/occupation contradiction", issue_guidance)
+        for label in expected_labels:
+            self.assertIn(label, issue_guidance)
+        self.assertNotIn("inconsistent_work_profile", issue_guidance)
         self.assertIn("Taxonomy descriptions define possible labels", evidence_guidance)
         self.assertIn("permitted_range", evidence_guidance)
         self.assertIn("not an actionability guarantee", evidence_guidance)

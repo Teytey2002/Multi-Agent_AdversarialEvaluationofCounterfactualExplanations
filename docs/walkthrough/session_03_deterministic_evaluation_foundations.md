@@ -12,7 +12,7 @@ Three modules:
 
 1. `src/pipeline/cf_metrics.py` — the DiCE-paper quantitative metrics (validity, proximity, sparsity, diversity).
 2. `src/policy/feature_policy.py` — the parts Session 2 didn't cover: naming dualism, model-vs-raw column split, education sync helpers, and the audit trail.
-3. `src/policy/heuristics.py` — the six scored issues, detection logic for each, and the architectural divide between *scored issues* and *constraint violations*.
+3. `src/policy/heuristics.py` — the active scored issues, detection logic for each, and the architectural divide between *scored issues* and *constraint violations*.
 
 This session establishes three decisions worth defending in any project review: why MAD normalization, why separate scored issues from constraint violations, and why deterministic rules rather than a learned plausibility classifier.
 
@@ -216,9 +216,11 @@ The design principle is precise:
 
 The same numerical anomaly can fire both channels simultaneously. If DiCE returns `age = 22` for a 25-year-old, the heuristic adds `implausible_time_dependent_change` to `flagged_issues` (the CF is unrealistic as recourse) and `age_outside_permitted_range` to `constraint_violations` (the pipeline produced something it shouldn't have). The split exists so that pipeline bugs are surfaced separately from quality judgments, and so that fixing a pipeline bug requires no change to the evaluation taxonomy. Agents are explicitly told to never include constraint violations in their scored verdicts.
 
-### The six scored issues
+### The active scored issues
 
 Each scored issue corresponds to one label in `ISSUE_TAXONOMY` in `src/agents/prompts.py` — the same labels used in `annotations/ground_truth_labels.json` and in the LLM agent prompts.
+
+> **Phase 2 note.** The active taxonomy now has five scored labels, down from six. `inconsistent_work_profile` was removed because the narrow heuristic never fired on the current sample while LLMs used the label too freely. See the [Phase 2 overview](phase_2/phase_2_overview.md) for the substitution-feasibility framing and the removal rationale.
 
 #### 1. `fragile_counterfactual`
 
@@ -260,15 +262,7 @@ A CF saying "work 75 hours a week and the model would predict >50K" is valid but
 
 This is the delta-plausibility check that the box constraint cannot perform. The per-instance permitted range might allow `capital-gain ∈ [0, $10,000]` — a CF at $4,500 passes that range check. But a $0 → $4,500 capital-gain shift in a realistic recourse horizon for someone currently classified ≤50K is not actionable. The model strongly exploits `capital-gain` as a shortcut, and DiCE follows. This issue gives the agents the vocabulary to push back on those CFs.
 
-#### 5. `inconsistent_work_profile`
-
-**Trigger:** `workclass` is "Without-pay" or "Never-worked" but `occupation` is set (not null) — or the reverse.
-
-A CF proposing "switch to Without-pay workclass but keep your Tech-support occupation" is internally contradictory. The heuristic is deliberately narrow: it only flags the cleanest case of direct contradiction. It does not attempt to infer general workclass/occupation incompatibilities; agents are explicitly told not to invent these either.
-
-The taxonomy entry states: *"Flag only when deterministic heuristic evidence explicitly reports a direct workclass/occupation contradiction. Do not infer this label from ordinary workclass or occupation changes."* The discipline: when in doubt, do not flag.
-
-#### 6. `too_many_changes` — the burden count
+#### 5. `too_many_changes` — the burden count
 
 **Trigger:** `burden_count ≥ 3`, where `burden_count` is the count of changed actionable features, with two coupling adjustments:
 
@@ -315,7 +309,7 @@ Three reasons this matters. First, agents quote evidence instead of inventing nu
 
 ### Why determinism — not a learned classifier
 
-A reasonable question: why hand-code these six rules instead of training a "is this CF plausible?" classifier from human-labeled examples?
+A reasonable question: why hand-code these rules instead of training a "is this CF plausible?" classifier from human-labeled examples?
 
 Three reasons. **Reproducibility:** deterministic rules produce the same output on the same input, forever. A learned classifier drifts with retraining. The deterministic layer must be fixed for the project's central comparison to work. **Interpretability:** when the Judge sees `flagged_issues = ["too_many_changes"]`, any team member can look at the code and see exactly why. **Anti-circularity:** training a plausibility classifier would require the labeled examples in `annotations/ground_truth_labels.json` — but the project's research question is "do LLMs add value over deterministic rules?" If the deterministic layer were a learned classifier, the project would be comparing one ML system to another ML system, and the experimental design would collapse.
 
@@ -346,7 +340,7 @@ This module is consumed in four places:
 1. **`case_builder.py`** calls `compute_heuristic_metrics()` once per CF and embeds the result in `counterfactuals[*].heuristic_metrics`. It also computes a case-level union in `heuristic_summary` (the OR of all issues across all CFs for that individual).
 2. **`metrics_only.py`** reads `heuristic_summary.flagged_issues_union` and `constraint_violations_union` directly. The deterministic verdict is essentially a transformation of this output.
 3. **LLM agents** receive the heuristic output inside their prompt JSON and are explicitly instructed to treat it as the source of truth for scored issues.
-4. **Ground-truth annotations** in `annotations/ground_truth_labels.json` use the same six labels.
+4. **Reference annotations** in `annotations/ground_truth_labels.json` use the active scored labels. As of Phase 2, that active set has five labels.
 
 ### Heuristics design alternatives
 
@@ -371,7 +365,7 @@ This module is consumed in four places:
 
 **The two-channel split in `heuristics.py` is a deliberate architectural rule:** `flagged_issues` for quality judgments (agents and baseline), `constraint_violations` for pipeline correctness (developers). The same anomaly can fire both. They are never merged.
 
-**There are six scored issues, each with controlling constants in `feature_policy.py`.** The most architecturally interesting are `unactionable_capital_shift` (catches delta plausibility that box constraints cannot) and `too_many_changes` (with burden-count coupling adjustments for career-switch and life-stage pairs).
+**There are five active scored issues, each with controlling constants in `feature_policy.py`.** Phase 1 documented six labels; Phase 2 removed `inconsistent_work_profile` and documents the rationale in the [Phase 2 overview](phase_2/phase_2_overview.md). The most architecturally interesting active labels are `unactionable_capital_shift` (catches delta plausibility that box constraints cannot) and `too_many_changes` (with burden-count coupling adjustments for career-switch and life-stage pairs).
 
 **Evidence dictionaries are the project's antidote to LLM number-invention.** Agents quote them; they do not recompute. This is what makes the evaluation chain traceable from verdict back to specific feature delta.
 

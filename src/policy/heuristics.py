@@ -72,7 +72,6 @@ def compute_heuristic_metrics(
 
     Scored issue labels:
         - extreme_working_hours
-        - inconsistent_work_profile
         - implausible_time_dependent_change
         - unactionable_capital_shift
         - too_many_changes
@@ -494,48 +493,10 @@ def compute_heuristic_metrics(
                 )
 
     # ------------------------------------------------------------
-    # 6. inconsistent_work_profile
+    # Removed in Phase 2 — see docs/walkthrough/phase_2/.
+    # May return as two distinct symmetric signals later.
     # ------------------------------------------------------------
-    if "workclass" in changed_features and "occupation" not in changed_features:
-        new_workclass = cf.get("workclass")
-        old_occupation = original.get("occupation")
-
-        if new_workclass in {"Without-pay", "Never-worked"} and old_occupation not in {None, "?"}:
-            add_issue(
-                "inconsistent_work_profile",
-                {
-                    "old_workclass": original.get("workclass"),
-                    "new_workclass": cf.get("workclass"),
-                    "old_occupation": original.get("occupation"),
-                    "new_occupation": cf.get("occupation"),
-                    "reason": (
-                        "The workclass/occupation combination appears internally "
-                        "inconsistent or temporally implausible."
-                    ),
-                },
-            )
-
-    if "occupation" in changed_features and "workclass" not in changed_features:
-        new_occupation = cf.get("occupation")
-        old_workclass = original.get("workclass")
-
-        if old_workclass in {"Without-pay", "Never-worked"} and new_occupation not in {None, "?"}:
-            add_issue(
-                "inconsistent_work_profile",
-                {
-                    "old_workclass": original.get("workclass"),
-                    "new_workclass": cf.get("workclass"),
-                    "old_occupation": original.get("occupation"),
-                    "new_occupation": cf.get("occupation"),
-                    "reason": (
-                        "The workclass/occupation combination appears internally "
-                        "inconsistent or temporally implausible."
-                    ),
-                },
-            )
-
-    # ------------------------------------------------------------
-    # 7. too_many_changes
+    # 6. too_many_changes
     # ------------------------------------------------------------
     changed_actionable = set(changed_features).intersection(ACTIONABLE_FEATURES_CANONICAL)
     burden_count = len(changed_actionable)

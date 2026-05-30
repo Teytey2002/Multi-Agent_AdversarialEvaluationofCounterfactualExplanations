@@ -193,7 +193,7 @@ The baseline collects three kinds of signal from each case:
 
 1. **`flagged_issues`** — scored issue labels from `heuristic_summary.flagged_issues_union`, filtered to the valid taxonomy.
 2. **`constraint_violations`** — pipeline-correctness violations (frozen-feature edits, out-of-range values).
-3. **`metric_warnings`** — non-taxonomy warnings derived from DiCE metric thresholds: `validity_below_one`, `low_sparsity`, `low_continuous_proximity`, `low_categorical_proximity`. These are not scored labels (they do not appear in `flagged_issues`), but they elevate severity and shape the rationale.
+3. **`metric_warnings`** — non-taxonomy warnings derived from DiCE metric thresholds: `validity_below_one`, `low_sparsity`, `low_continuous_proximity`, `low_categorical_proximity`, `low_count_diversity`. These are not scored labels (they do not appear in `flagged_issues`), but they elevate severity and shape the rationale.
 
 It also reads `is_false_negative` as a context modifier. From these signals, verdict fields are derived through a short cascade of rules:
 
@@ -225,13 +225,12 @@ Confidence values are static per regime: 0.95 when constraint violations are pre
 
 ### `CRITICAL_ISSUES` — what escalates severity
 
-Five of the six scored issue labels are critical:
+Four of the five active scored issue labels are critical:
 
 - `too_many_changes`
 - `unactionable_capital_shift`
 - `implausible_time_dependent_change`
 - `extreme_working_hours`
-- `inconsistent_work_profile`
 
 Notably absent: **`fragile_counterfactual`**.
 
@@ -246,9 +245,12 @@ validity_min               = 1.0
 sparsity_low               = 0.65
 continuous_proximity_low   = -1.0
 categorical_proximity_low  = 0.70
+count_diversity_low        = 0.20
 ```
 
 These are not part of the issue taxonomy. They appear in a separate `metric_warnings` field in the verdict, never in `flagged_issues`. The agents are not told these threshold values — they reason from raw metric values directly. So the baseline can flag "low sparsity" mechanically; an LLM has to infer it. Whether LLMs pick up on borderline metrics is one of the things the project measures.
+
+> **Phase 2 note.** `low_count_diversity` was added as a fifth metric warning. It captures the case where the CF set offers little real variation even when validity is high. See the [Phase 2 overview](phase_2/phase_2_overview.md).
 
 ### Constraint violations as their own field
 

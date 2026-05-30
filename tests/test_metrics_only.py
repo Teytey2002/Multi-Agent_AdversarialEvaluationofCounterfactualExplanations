@@ -12,6 +12,7 @@ def _base_case(**overrides):
             "sparsity": 0.85,
             "continuous_proximity": -0.2,
             "categorical_proximity": 0.9,
+            "count_diversity": 0.5,
         },
         "heuristic_summary": {
             "flagged_issues_union": [],
@@ -96,6 +97,22 @@ class MetricsOnlyEvaluatorTests(unittest.TestCase):
         self.assertEqual(verdict["flagged_issues"], ["extreme_working_hours"])
         self.assertEqual(verdict["severity"], "medium")
 
+    def test_low_count_diversity_is_metric_warning_not_scored_issue(self):
+        case = _base_case(
+            metrics={
+                "validity": 1.0,
+                "sparsity": 0.85,
+                "continuous_proximity": -0.2,
+                "categorical_proximity": 0.9,
+                "count_diversity": 0.1,
+            }
+        )
+
+        verdict = evaluate_case_metrics_only(case)
+
+        self.assertEqual(verdict["flagged_issues"], [])
+        self.assertEqual(verdict["metric_warnings"], ["low_count_diversity"])
+        self.assertEqual(verdict["overall_assessment"], "ambiguous")
 
 if __name__ == "__main__":
     unittest.main()
