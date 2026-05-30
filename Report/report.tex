@@ -1,0 +1,229 @@
+\documentclass[letterpaper]{article}
+
+% AAAI 2026 style.
+% Use [submission] if you want the anonymous/submission version.
+% For a course report with visible names, try without [submission].
+\usepackage{aaai2026}
+
+% Required / standard AAAI packages
+\usepackage{times}
+\usepackage{helvet}
+\usepackage{courier}
+\usepackage[hyphens]{url}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{caption}
+
+% Useful packages
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{multirow}
+
+% Optional: algorithms
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\urlstyle{rm}
+\def\UrlFont{\rm}
+\frenchspacing
+
+% US Letter page size, as required by AAAI
+\setlength{\pdfpagewidth}{8.5in}
+\setlength{\pdfpageheight}{11in}
+
+% No section numbering, AAAI-style
+\setcounter{secnumdepth}{0}
+
+\pdfinfo{
+/TemplateVersion (2026.1)
+}
+
+\title{Your Project Title: Studying [Method Name] for [Problem/Task]}
+
+\author{
+    First Author,
+    Second Author,
+    Third Author
+}
+
+\affiliations{
+    Universit\'e Libre de Bruxelles\\
+    INFO-H512 Project\\
+    \{first.email, second.email, third.email\}@ulb.be
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This project studies [selected AI method] in the context of [seminar topic].
+We formulate the research question: [insert research question].
+We review the relevant literature, implement the method, and evaluate it on
+[dataset/task]. Our results show that [main result], while also highlighting
+[main limitation].
+\end{abstract}
+
+\section{Introduction and Problem Formulation}
+
+The goal of this project is to study in depth a state-of-the-art AI method
+presented in the seminar. We focus on the topic of [seminar topic], and more
+specifically on [selected method].
+
+The main research question addressed in this report is:
+
+\begin{quote}
+    \emph{[Write your precise research question here.]}
+\end{quote}
+
+This question is relevant because [motivation]. In this work, we [reproduce /
+apply / extend / compare] the method by implementing it and evaluating it on
+[dataset or problem setting].
+
+Our contributions are:
+\begin{itemize}
+    \item a targeted literature review of [research area];
+    \item an implementation of [selected method];
+    \item an experimental evaluation on [dataset/task];
+    \item a critical analysis of the method's strengths, assumptions, and limitations.
+\end{itemize}
+
+\section{Related Work}
+
+\subsection{Taxonomy of the Research Area}
+
+The research area of [topic] can be broadly divided into several families of
+methods:
+\begin{itemize}
+    \item \textbf{Family 1:} [brief explanation];
+    \item \textbf{Family 2:} [brief explanation];
+    \item \textbf{Family 3:} [brief explanation].
+\end{itemize}
+
+This taxonomy helps position [selected method] within the broader literature.
+
+\subsection{Seminal and Recent Works}
+
+% Early work on [topic] introduced [main idea] \citep{example2020}.
+% More recent approaches have focused on [recent development] \citep{example2023}.
+
+Compared with these methods, [selected method] is distinctive because [reason].
+However, it also relies on assumptions such as [assumption], which may limit its
+applicability in [setting].
+
+\section{Method}
+
+We now describe [selected method]. The method aims to [goal of method].
+At a high level, it works by [main algorithmic idea].
+
+Given an input $x$, the method computes [output] by solving/estimating:
+
+\begin{equation}
+    \hat{y} = f_\theta(x),
+\end{equation}
+
+where $f_\theta$ denotes [model/method]. The key steps are:
+
+\begin{enumerate}
+    \item [Step 1];
+    \item [Step 2];
+    \item [Step 3].
+\end{enumerate}
+
+In our implementation, we follow [paper/source] with the following adaptations:
+[describe simplifications, modifications, or implementation choices].
+
+\section{Experimental Setup}
+
+\subsection{Dataset}
+
+We evaluate the method on [dataset name]. The dataset contains [brief
+description: number of samples, features, classes, task, etc.].
+
+\subsection{Baselines}
+
+We compare [selected method] against the following baselines:
+\begin{itemize}
+    \item \textbf{Baseline 1:} [description];
+    \item \textbf{Baseline 2:} [description].
+\end{itemize}
+
+\subsection{Metrics}
+
+We use the following metrics:
+\begin{itemize}
+    \item \textbf{Metric 1:} [why appropriate];
+    \item \textbf{Metric 2:} [why appropriate];
+    \item \textbf{Metric 3:} [why appropriate].
+\end{itemize}
+
+\subsection{Implementation Details}
+
+The implementation is written in Python. The code is available at:
+
+\begin{center}
+\url{https://github.com/your-username/your-repository}
+\end{center}
+
+The repository includes instructions to reproduce the experiments, including
+dependencies, dataset preparation, and commands used to generate the results.
+
+\section{Results and Analysis}
+
+Table~\ref{tab:results} summarizes the main experimental results.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{lccc}
+\toprule
+Method & Metric 1 & Metric 2 & Metric 3 \\
+\midrule
+Baseline 1 & -- & -- & -- \\
+Baseline 2 & -- & -- & -- \\
+Selected method & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\caption{Experimental results comparing the selected method with baselines.}
+\label{tab:results}
+\end{table}
+
+The results show that [main observation]. Compared with [baseline], the selected
+method [performs better/worse] in terms of [metric]. This suggests that [analysis].
+
+However, the method also presents limitations. First, [limitation 1]. Second,
+[limitation 2]. These limitations are important because they affect [robustness,
+scalability, interpretability, feasibility, etc.].
+
+Figure~\ref{fig:example} illustrates [what the figure shows].
+
+% \begin{figure}[t]
+% \centering
+% % Replace this with your actual figure file
+% \includegraphics[width=0.95\columnwidth]{figures/example.pdf}
+% \caption{Example result produced by the method.}
+% \label{fig:example}
+% \end{figure}
+
+\section{Discussion}
+
+The experiments indicate that [answer to research question]. The main strength
+of [selected method] is [strength]. This makes it suitable for [setting].
+
+Nevertheless, the method assumes that [assumption]. In practice, this assumption
+may not hold when [case]. Another limitation is [another limitation].
+
+Possible improvements include [future improvement], [extension], or combining
+the method with [other approach].
+
+\section{Conclusion}
+
+This report studied [selected method] for [task/problem]. We reviewed the
+relevant literature, implemented the method, and evaluated it experimentally.
+Our findings suggest that [main conclusion]. Future work could investigate
+[future direction].
+
+\bibliographystyle{aaai2026}
+\bibliography{references}
+
+\end{document}
