@@ -211,25 +211,35 @@ evaluation pipeline.
 
 \section{Method}
 
-We now describe [selected method]. The method aims to [goal of method].
-At a high level, it works by [main algorithmic idea].
+The original predictive task is binary classification on the Adult Income
+dataset. Each instance describes a person using demographic, educational,
+occupational, financial, and working-time attributes, such as age, education,
+occupation, capital gain and loss, hours worked per week, and native country.
+The unfavorable class corresponds to a predicted annual income of at most
+\$50K, while the favorable class corresponds to a predicted annual income above
+\$50K. We train a Logistic Regression model inside an \texttt{sklearn} pipeline. 
+This model is used for counterfactual generation because DiCE requires reliable class-probability
+outputs that can guide its optimization procedure.
 
-Given an input $x$, the method computes [output] by solving/estimating:
+% We now describe [selected method]. The method aims to [goal of method].
+% At a high level, it works by [main algorithmic idea].
 
-\begin{equation}
-    \hat{y} = f_\theta(x),
-\end{equation}
+% Given an input $x$, the method computes [output] by solving/estimating:
 
-where $f_\theta$ denotes [model/method]. The key steps are:
+% \begin{equation}
+%     \hat{y} = f_\theta(x),
+% \end{equation}
 
-\begin{enumerate}
-    \item [Step 1];
-    \item [Step 2];
-    \item [Step 3].
-\end{enumerate}
+% where $f_\theta$ denotes [model/method]. The key steps are:
 
-In our implementation, we follow [paper/source] with the following adaptations:
-[describe simplifications, modifications, or implementation choices].
+% \begin{enumerate}
+%     \item [Step 1];
+%     \item [Step 2];
+%     \item [Step 3].
+% \end{enumerate}
+
+% In our implementation, we follow [paper/source] with the following adaptations:
+% [describe simplifications, modifications, or implementation choices].
 
 \section{Experimental Setup}
 
