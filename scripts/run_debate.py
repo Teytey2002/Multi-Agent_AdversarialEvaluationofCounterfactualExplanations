@@ -10,6 +10,9 @@ $env:PYTHONPATH="src"; python scripts/run_debate.py --max-rounds 1 --turn-delay 
 # Single-LLM baseline
 $env:PYTHONPATH="src"; python scripts/run_debate.py --single-llm
 
+# Single-LLM with extended public explanation
+$env:PYTHONPATH="src"; python scripts/run_debate.py --single-llm --explainability
+
 # Specific Groq model
 $env:PYTHONPATH="src"; python scripts/run_debate.py --model llama-3.3-70b-versatile
 
@@ -119,6 +122,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--max-tokens", type=int, default=700)
     p.add_argument("--single-llm", action="store_true",
                    help="Run single-LLM baseline instead of debate.")
+    p.add_argument("--explainability", action="store_true",
+                   help="Single-LLM only: include an extended expert_explanation field in each verdict.")
     p.add_argument("--case-ids", nargs="+", type=int, default=None,
                    help="Run only specific case IDs (e.g. --case-ids 0 2 5).")
     p.add_argument("--cases-file", type=str, default=str(CASES_PATH),
@@ -138,6 +143,9 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    if args.explainability and not args.single_llm:
+        raise ValueError("--explainability is currently supported only with --single-llm.")
+
     mode = "single_llm" if args.single_llm else "multi_agent"
     OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
 
@@ -168,6 +176,9 @@ def main() -> None:
     print(f"Model:    {llm_config.model}")
     if not args.single_llm:
         print(f"Speaker:  {args.speaker_selection}")
+    if args.single_llm:
+        explain_status = "enabled" if args.explainability else "disabled"
+        print(f"Explain:  {explain_status}")
     print(f"Cases:    {len(cases)} (IDs: {[c['case_id'] for c in cases]})")
     if delay:
         print(f"Delay:    {delay}s between cases")
@@ -193,6 +204,7 @@ def main() -> None:
                     case, llm_config=llm_config,
                     temperature=args.temperature, max_tokens=args.max_tokens,
                     verbose=args.verbose,
+                    include_explainability=args.explainability,
                 )
             else:
                 result = run_debate(
@@ -274,6 +286,7 @@ def main() -> None:
             "max_tokens":        llm_config.max_tokens,
             "speaker_selection": "single_llm" if args.single_llm else args.speaker_selection,
             "turn_delay":        0 if args.single_llm else turn_delay,
+            "explainability":    bool(args.explainability),
         },
         "summary": summary,
         "results": case_results,

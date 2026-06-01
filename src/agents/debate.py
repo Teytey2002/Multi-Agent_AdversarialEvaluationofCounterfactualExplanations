@@ -21,6 +21,7 @@ from agents.agents import (
     SPECIALIST_OUTPUT_PROTOCOL,
     build_debate_agents,
     build_single_evaluator_agent,
+    build_single_explainer_agent,
 )
 from agents.config import LLMConfig, build_model_client, resolve_llm_config
 from agents.prompts import get_issue_guidance
@@ -204,6 +205,69 @@ Case data:
 """.strip()
 
 
+def _compact_case_for_explanation(case_data: dict[str, Any]) -> dict[str, Any]:
+    """Return only the evidence needed to explain an already-fixed verdict."""
+    compact = _compact_case_for_prompt(case_data)
+    return {
+        "case_id": compact.get("case_id"),
+        "original": compact.get("original", {}),
+        "prediction": compact.get("prediction"),
+        "prediction_confidence": compact.get("prediction_confidence"),
+        "true_label": compact.get("true_label"),
+        "is_false_negative": compact.get("is_false_negative"),
+        "metrics": compact.get("metrics", {}),
+        "heuristic_summary": compact.get("heuristic_summary", {}),
+        "counterfactuals": compact.get("counterfactuals", []),
+    }
+
+
+def _build_single_explanation_prompt(
+    case_data: dict[str, Any],
+    verdict: dict[str, Any],
+) -> str:
+    """Build the second-stage prompt that explains a fixed single-LLM verdict."""
+    compact_case = _compact_case_for_explanation(case_data)
+    heuristic_issues = set(
+        compact_case.get("heuristic_summary", {}).get("flagged_issues_union", [])
+    )
+    verdict_issues = set(str(i) for i in verdict.get("flagged_issues", []))
+    explanation_input = {
+        "evaluation_scope": "counterfactual_explanation_set_not_original_prediction",
+        "case_evidence": compact_case,
+        "fixed_cf_evaluation": {
+            "case_id": verdict.get("case_id"),
+            "cf_set_assessment": verdict.get("overall_assessment"),
+            "flagged_issues": sorted(verdict_issues),
+            "severity": verdict.get("severity"),
+            "confidence": verdict.get("confidence"),
+            "reasoning_summary": verdict.get("reasoning_summary"),
+            "recommended_action": verdict.get("recommended_action"),
+        },
+        "issue_alignment": {
+            "missed_heuristic_issues": sorted(heuristic_issues - verdict_issues),
+            "extra_verdict_issues": sorted(verdict_issues - heuristic_issues),
+            "exact_issue_alignment": heuristic_issues == verdict_issues,
+        },
+    }
+
+    return f"""
+Explain the fixed single-LLM evaluation below for a non-expert reader.
+
+Important:
+- The evaluation is about the counterfactual explanation set, not whether the original model prediction is morally unfair.
+- Do not revise the fixed evaluation.
+- Do not add or remove issue labels.
+- Mention disagreement risk only if `issue_alignment` lists missed or extra issues.
+- Put the complete explanation inside `expert_explanation`.
+- Return only the JSON schema requested by your system message.
+
+Input:
+```json
+{json.dumps(explanation_input, separators=(",", ":"))}
+```
+""".strip()
+
+
 # ---------------------------------------------------------------------------
 # Speaker selection helpers
 # ---------------------------------------------------------------------------
@@ -383,6 +447,7 @@ async def run_single_llm_async(
     temperature: float = 0.2,
     max_tokens: int = 700,
     verbose: bool = False,
+    include_explainability: bool = False,
 ) -> dict[str, Any]:
     """Run a single-agent baseline evaluation for one case."""
 
@@ -392,6 +457,11 @@ async def run_single_llm_async(
     )
     model_client = build_model_client(config)
     evaluator = build_single_evaluator_agent(model_client)
+    explainer = (
+        build_single_explainer_agent(model_client)
+        if include_explainability
+        else None
+    )
 
     try:
         result = await evaluator.run(task=_build_single_llm_prompt(case_data))
@@ -403,6 +473,24 @@ async def run_single_llm_async(
         final = transcript[-1]["content"] if transcript else ""
         verdict = parse_judge_verdict(final)
 
+        if explainer is not None:
+            explanation_result = await explainer.run(
+                task=_build_single_explanation_prompt(case_data, verdict)
+            )
+            explanation_transcript = [
+                serialise_message(m) for m in explanation_result.messages
+            ]
+            transcript.extend(explanation_transcript)
+            explanation_final = (
+                explanation_transcript[-1]["content"]
+                if explanation_transcript
+                else ""
+            )
+            explanation_payload = parse_judge_verdict(explanation_final)
+            verdict["expert_explanation"] = str(
+                explanation_payload.get("expert_explanation", "")
+            ).strip()
+
         return {
             "case_id":            case_data["case_id"],
             "speaker_selection":  "single_llm",
@@ -413,6 +501,7 @@ async def run_single_llm_async(
             "cost":               calculate_cost(transcript, model_name=config.model, provider=config.provider),
             "model":              config.model,
             "provider":           config.provider,
+            "explainability":     include_explainability,
         }
     finally:
         await model_client.close()
