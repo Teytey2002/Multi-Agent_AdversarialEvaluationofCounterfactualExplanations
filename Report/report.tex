@@ -212,12 +212,8 @@ evaluation pipeline.
 \section{Method}
 
 The original predictive task is binary classification on the Adult Income
-dataset. Each instance describes a person using demographic, educational,
-occupational, financial, and working-time attributes, such as age, education,
-occupation, capital gain and loss, hours worked per week, and native country.
-The unfavorable class corresponds to a predicted annual income of at most
-\$50K, while the favorable class corresponds to a predicted annual income above
-\$50K. We train a Logistic Regression model inside an \texttt{sklearn} pipeline. 
+dataset, where the model predicts whether an individual's income is at most or
+above \$50K. We train a Logistic Regression model inside an \texttt{sklearn} pipeline. 
 This model is used for counterfactual generation because DiCE requires reliable class-probability
 outputs that can guide its optimization procedure.\\
 \newline
@@ -369,36 +365,95 @@ aligned with the same evaluation framework.
 
 \subsection{Dataset}
 
-We evaluate the method on [dataset name]. The dataset contains [brief
-description: number of samples, features, classes, task, etc.].
+We evaluate the pipeline on the Adult Income dataset. The task is binary
+income prediction: each individual is classified as earning at most \$50K or
+more than \$50K per year.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{p{0.36\columnwidth}p{0.54\columnwidth}}
+\toprule
+Property & Description \\
+\midrule
+Dataset & Adult Income \\
+Instances & 48,842 \\
+Input features & 14 demographic, educational, occupational, financial, and
+working-time attributes \\
+Prediction task & Binary income classification \\
+Unfavorable class & Predicted income $\leq$ \$50K \\
+Favorable class & Predicted income $>$ \$50K \\
+\bottomrule
+\end{tabular}
+\caption{Dataset used in the experiments.}
+\label{tab:dataset}
+\end{table}
+
+\noindent
+The main features include age, education, occupation, capital gain, capital
+loss, hours worked per week, and native country. For the evaluation stage:
+\begin{itemize}
+    \item we select 10 individuals predicted in the unfavorable class;
+    \item DiCE generates multiple counterfactuals for each selected individual;
+    \item DiCE generation uses its default parameters, with the feature policy
+    described in the Method section.
+\end{itemize}
 
 \subsection{Baselines}
 
-We compare [selected method] against the following baselines:
+We compare three counterfactual evaluators. The metrics-only evaluator is used
+as the rule-based reference, i.e., the ground-truth baseline for comparing the
+LLM-based systems.
 \begin{itemize}
-    \item \textbf{Baseline 1:} [description];
-    \item \textbf{Baseline 2:} [description].
+    \item \textbf{Metrics-only baseline:} deterministic evaluator based on
+    numerical metrics and heuristic issue flags.
+    \item \textbf{Single-LLM evaluator:} one LLM produces a structured verdict
+    from the same case evidence.
+    \item \textbf{Multi-agent LLM evaluator:} AutoGen debate between
+    Prosecutor, Defense attorney, Expert witness, and Judge.
 \end{itemize}
 
 \subsection{Metrics}
 
-We use the following metrics:
+Evaluation focuses on agreement with the metrics-only reference:
 \begin{itemize}
-    \item \textbf{Metric 1:} [why appropriate];
-    \item \textbf{Metric 2:} [why appropriate];
-    \item \textbf{Metric 3:} [why appropriate].
+    \item \textbf{Detection rate:} percentage of taxonomy issue labels from the
+    metrics-only reference that are also identified by the evaluated system.
+    \item \textbf{Exact match rate:} percentage of cases for which the complete
+    predicted issue-label set exactly matches the metrics-only reference set.
 \end{itemize}
 
 \subsection{Implementation Details}
 
-The implementation is written in Python. The code is available at:
+The implementation is written in Python. Counterfactuals are generated with
+DiCE, and the LLM-based evaluators are implemented with AutoGen. Both the
+single-LLM evaluator and the multi-agent debate use the same provider and base
+model.
 
-\begin{center}
-\url{https://github.com/your-username/your-repository}
-\end{center}
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lcc}
+\toprule
+Setting & Single LLM & Multi-agent LLM \\
+\midrule
+Framework & AutoGen & AutoGen \\
+Provider & Groq & Groq \\
+Model & \multicolumn{2}{c}{\texttt{llama-3.1-8b-instant}} \\
+Temperature & \multicolumn{2}{c}{0.2} \\
+Max tokens & 700 & 250 \\
+\bottomrule
+\end{tabular}
+\caption{LLM configuration used in the final experiments.}
+\label{tab:llm-config}
+\end{table}
 
-The repository includes instructions to reproduce the experiments, including
-dependencies, dataset preparation, and commands used to generate the results.
+\noindent
+The temperature is set to 0.2 to keep outputs conservative while avoiding fully
+deterministic generation. The single-LLM evaluator uses a larger completion
+budget because it produces one main verdict. The multi-agent debate uses a
+smaller budget to keep the accumulated debate and Judge request under Groq's
+token limits.
 
 \section{Results and Analysis}
 
