@@ -219,7 +219,85 @@ The unfavorable class corresponds to a predicted annual income of at most
 \$50K, while the favorable class corresponds to a predicted annual income above
 \$50K. We train a Logistic Regression model inside an \texttt{sklearn} pipeline. 
 This model is used for counterfactual generation because DiCE requires reliable class-probability
-outputs that can guide its optimization procedure.
+outputs that can guide its optimization procedure.\\
+\newline
+Before generating counterfactuals with DiCE, we define a feature policy that
+freezes attributes that should not be modified: \texttt{fnlwgt}, marital
+status, relationship, race, sex, and native country. Counterfactuals are
+therefore not allowed to assign different values to these features, since doing
+so would imply unfair or unrealistic demands on the individual.\\
+\newline
+After training the predictive model and applying this feature policy, we
+generate counterfactual explanations with DiCE. For each individual with an
+unfavorable prediction, DiCE produces multiple candidate counterfactuals that
+aim to move the prediction to the favorable class. We keep the DiCE generation
+parameters at their default values and use the feature policy only to restrict
+which attributes may change.\\
+\newline
+For each generated counterfactual, we compute a first set of standard numerical
+quality metrics:
+\begin{itemize}
+    \item \textbf{Validity:} whether the counterfactual reaches the favorable
+    class.
+    \item \textbf{Proximity:} how close the counterfactual remains to the
+    original instance.
+    \item \textbf{Sparsity:} how many features are changed.
+    \item \textbf{Diversity:} how different the generated counterfactuals are
+    from each other.
+    \item \textbf{Counterfactual confidence:} the model probability assigned to
+    the favorable class for the counterfactual.
+\end{itemize}
+\noindent
+These metrics are useful for ranking and filtering counterfactuals, and they
+are close to the criteria commonly used in DiCE-style generation. However, they
+remain purely numerical. They do not directly represent whether a
+counterfactual is plausible, actionable, or convincing from a human perspective.
+We therefore add an issue taxonomy that provides a second evaluation layer. The
+taxonomy defines a fixed vocabulary of possible counterfactual failures:
+\begin{itemize}
+    \item \texttt{implausible\_time\_dependent\_change}: age decreases,
+    education decreases, education increases without sufficient age increase,
+    or age/education becomes non-integer.
+    \item \texttt{extreme\_working\_hours}: weekly working hours become
+    dangerously high, implausibly low, or change by an unrealistic amount.
+    \item \texttt{unactionable\_capital\_shift}: capital gain or capital loss
+    changes in a financially unrealistic way.
+    \item \texttt{too\_many\_changes}: too many actionable features are changed
+    at the same time.
+    \item \texttt{fragile\_counterfactual}: the counterfactual only barely
+    reaches the favorable class, with confidence close to the decision
+    threshold.
+\end{itemize}
+\noindent
+Each label corresponds to a specific failure mode in the generated
+counterfactual. This taxonomy gives all evaluation strategies the same
+vocabulary: the metrics-only evaluator, the single-LLM evaluator, and the
+multi-agent LLM evaluator all reason over the same issue labels. It also
+constrains the LLM-based evaluators by discouraging free-form criticism that is
+not grounded in the predefined evaluation framework.\\
+\newline
+We operationalize the taxonomy through deterministic heuristic rules. These
+rules encode human-designed plausibility checks over the original instance, the
+counterfactual, and the numerical metrics. For example, they flag decreases in
+age, unrealistic changes in education or working hours, large unexplained
+capital shifts, excessive simultaneous modifications, and low-margin favorable
+predictions. The heuristic module returns the set of issue labels detected for
+each counterfactual.\\
+\newline
+Finally, we define a metrics-only deterministic evaluator. This evaluator does
+not use an LLM. It receives as input the generated counterfactuals, their
+standard numerical metrics, and the heuristic issue flags derived from the issue
+taxonomy. It outputs two judgments for each counterfactual:
+\begin{itemize}
+    \item \textbf{Issue severity:} \texttt{low}, \texttt{medium}, or
+    \texttt{high}, depending on the number and type of detected issues.
+    \item \textbf{Overall assessment:} \texttt{fair}, \texttt{ambiguous}, or
+    \texttt{unfair}, summarizing whether the counterfactual is acceptable as an
+    explanation.
+\end{itemize}
+\noindent
+This deterministic evaluator acts as the rule-based reference against which the
+LLM-based evaluation strategies are compared.
 
 % We now describe [selected method]. The method aims to [goal of method].
 % At a high level, it works by [main algorithmic idea].
