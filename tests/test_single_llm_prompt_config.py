@@ -4,16 +4,19 @@ from pathlib import Path
 
 from agents.agents import (
     SPECIALIST_OUTPUT_PROTOCOL,
+    SINGLE_EXPLANATION_LAYER_GUIDANCE,
     SINGLE_EVALUATOR_PHASE2_CALIBRATION,
     _build_single_evaluator_system_message,
 )
 from agents.config import resolve_llm_config
 from agents.debate import (
     _build_case_prompt,
+    _build_single_explanation_prompt,
     _build_single_llm_prompt,
     _compact_case_for_prompt,
 )
 from agents.prompts import get_evidence_guidance, get_issue_guidance
+from agents.utils import parse_judge_verdict
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -89,6 +92,59 @@ class SingleLlmPromptConfigTests(unittest.TestCase):
             "not to invent a new evaluation policy",
             SINGLE_EVALUATOR_PHASE2_CALIBRATION,
         )
+
+    def test_explainability_layer_is_decoupled_from_verdict_prompt(self):
+        system_message = _build_single_evaluator_system_message()
+        self.assertNotIn("expert_explanation", system_message)
+
+        fixed_verdict = {
+            "case_id": self.case["case_id"],
+            "overall_assessment": "unfair",
+            "flagged_issues": ["fragile_counterfactual"],
+            "severity": "medium",
+            "confidence": 0.86,
+            "reasoning_summary": "Fragility is supported by heuristic evidence.",
+            "recommended_action": "review",
+        }
+        explanation_prompt = _build_single_explanation_prompt(
+            self.case,
+            fixed_verdict,
+        )
+
+        self.assertIn("fixed single-LLM evaluation", explanation_prompt)
+        self.assertIn("expert_explanation", explanation_prompt)
+        self.assertIn("Do not revise the fixed evaluation", explanation_prompt)
+        self.assertIn("counterfactual explanation set", explanation_prompt)
+        self.assertIn("issue_alignment", explanation_prompt)
+        self.assertIn("fragile_counterfactual", explanation_prompt)
+        self.assertNotIn("ground_truth_issues", explanation_prompt)
+        self.assertIn("do not write prose outside", SINGLE_EXPLANATION_LAYER_GUIDANCE)
+        self.assertIn("Never say the original model prediction", SINGLE_EXPLANATION_LAYER_GUIDANCE)
+
+    def test_verdict_parser_preserves_expert_explanation_field(self):
+        verdict = parse_judge_verdict(
+            """
+            ```json
+            {
+              "case_id": 7,
+              "overall_assessment": "unfair",
+              "flagged_issues": ["fragile_counterfactual"],
+              "severity": "medium",
+              "confidence": 0.86,
+              "expert_explanation": "The counterfactuals barely pass the model threshold, so the advice is unstable.",
+              "reasoning_summary": "Fragility is supported by heuristic evidence.",
+              "recommended_action": "review"
+            }
+            ```
+            VERDICT_COMPLETE
+            """
+        )
+
+        self.assertEqual(
+            verdict["expert_explanation"],
+            "The counterfactuals barely pass the model threshold, so the advice is unstable.",
+        )
+        self.assertEqual(verdict["flagged_issues"], ["fragile_counterfactual"])
 
     def test_non_groq_provider_is_rejected(self):
         with self.assertRaises(ValueError):

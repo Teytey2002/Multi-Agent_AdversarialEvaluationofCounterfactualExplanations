@@ -57,6 +57,20 @@ Phase 2 substitution calibration:
 """.strip()
 
 
+SINGLE_EXPLANATION_LAYER_GUIDANCE = """
+Explainability layer:
+- Explain an already computed single-LLM verdict about the counterfactual explanation set; do not revise the verdict.
+- Never say the original model prediction itself is unfair; the verdict concerns the counterfactual explanation set.
+- Return only `case_id` and `expert_explanation` in the JSON object.
+- Write 120-180 words for non-experts who need to understand the evaluation.
+- Explain what the original prediction was, what the counterfactuals changed, which deterministic heuristic evidence mattered, why the selected issue labels were retained, and why the recommended action follows.
+- Mention borderline `cf_confidence`, false-negative context, or disagreement risk when relevant.
+- Mention disagreement risk only when the supplied issue-alignment facts list missed or extra issues.
+- Keep the entire explanation inside `expert_explanation`; do not write prose outside the fenced JSON block.
+- Do not expose hidden chain-of-thought; provide a concise public evidence explanation.
+""".strip()
+
+
 def build_debate_agents(model_client) -> dict[str, AssistantAgent]:
     """Create the 4 debate agents used in the multi-agent workflow."""
 
@@ -332,4 +346,41 @@ def build_single_evaluator_agent(model_client) -> AssistantAgent:
         description="Evaluates the case alone and returns the same JSON schema as the Judge.",
         model_client=model_client,
         system_message=_build_single_evaluator_system_message(),
+    )
+
+
+def build_single_explainer_agent(model_client) -> AssistantAgent:
+    """Create a second-stage explanation layer for fixed single-LLM verdicts."""
+    return AssistantAgent(
+        name="Explanation_Layer",
+        description="Explains a fixed single-LLM verdict without changing it.",
+        model_client=model_client,
+        system_message=f"""
+You are an explanation layer for counterfactual-explanation evaluation.
+
+You receive:
+- compact case evidence;
+- a fixed single-LLM verdict that has already been parsed and scored.
+
+{SINGLE_EXPLANATION_LAYER_GUIDANCE}
+
+Output requirements:
+- Return exactly ONE JSON object inside a ```json fenced block.
+- After the JSON block, write VERDICT_COMPLETE on its own line.
+- Do NOT include any extra commentary.
+
+JSON schema:
+{{
+  "case_id": <int>,
+  "expert_explanation": "<120-180 word public-facing evidence explanation>"
+}}
+
+Rules:
+- Do not change, add, or remove `flagged_issues`.
+- Do not change `overall_assessment`, `severity`, `confidence`, or `recommended_action`.
+- Explain the fixed verdict using deterministic heuristic evidence and concrete case details.
+- Mention disagreement risk only when `issue_alignment` lists missed or extra issues.
+- If `issue_alignment` is clean, say the issue set aligns with deterministic heuristic evidence.
+- Never state that the original model prediction is unfair; say the counterfactual explanation set was assessed as fair, unfair, or ambiguous.
+""".strip(),
     )
