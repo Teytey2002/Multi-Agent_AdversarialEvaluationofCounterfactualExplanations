@@ -297,7 +297,53 @@ taxonomy. It outputs two judgments for each counterfactual:
 \end{itemize}
 \noindent
 This deterministic evaluator acts as the rule-based reference against which the
-LLM-based evaluation strategies are compared.
+LLM-based evaluation strategies are compared.\\
+\newline
+\textbf{Single-LLM evaluator.} The second evaluation strategy is a single LLM
+baseline. It receives the same information as the metrics-only evaluator, but
+formatted as a structured prompt. The prompt contains the original individual
+profile, the generated counterfactuals, the feature changes, the numerical
+metrics, the heuristic issue evidence, and the taxonomy instructions. The model
+then produces one structured verdict for each counterfactual, including an
+overall label, such as \texttt{fair}, \texttt{ambiguous}, or \texttt{unfair},
+and a short justification. This baseline tests whether LLM reasoning alone adds
+value over deterministic metrics before introducing multi-agent debate.\\
+\newline
+\textbf{Multi-agent adversarial debate.} The central model of the project is an
+LLM-based multi-agent debate system implemented with the Python framework
+AutoGen. This system operationalizes the main research question by testing
+whether adversarial role-based discussion improves counterfactual evaluation
+beyond a single LLM. It uses four specialized agents:
+\begin{itemize}
+    \item \textbf{Prosecutor:} attacks the counterfactual and identifies
+    possible flaws.
+    \item \textbf{Defense attorney:} defends the counterfactual and argues for
+    its validity, plausibility, and usefulness.
+    \item \textbf{Expert witness:} summarizes the numerical metrics and the
+    heuristic evidence derived from the issue taxonomy.
+    \item \textbf{Judge:} synthesizes the previous arguments into a final
+    structured verdict.
+\end{itemize}
+\noindent
+The judge produces the final assessment for each counterfactual in the same
+format as the other evaluators, making the three strategies directly
+comparable.\\
+\newline
+All LLM-based components, including the single-LLM evaluator and the four
+debate agents, are controlled through structured prompts. These prompts contain
+explicit rules:
+\begin{itemize}
+    \item use only issue labels from the predefined taxonomy;
+    \item do not invent new categories of counterfactual criticism;
+    \item rely on the heuristic flags when discussing plausibility and
+    validity;
+    \item discuss flip robustness using \texttt{cf\_confidence}, where a
+    counterfactual is considered fragile when its confidence is close to the
+    0.5 decision threshold.
+\end{itemize}
+\noindent
+These constraints make the LLM outputs auditable and keep all evaluators
+aligned with the same evaluation framework.
 
 % We now describe [selected method]. The method aims to [goal of method].
 % At a high level, it works by [main algorithmic idea].
