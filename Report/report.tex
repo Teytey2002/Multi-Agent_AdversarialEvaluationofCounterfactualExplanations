@@ -39,7 +39,7 @@
 /TemplateVersion (2026.1)
 }
 
-\title{Multi-Agent LLM Evaluation of Counterfactual Explanations for Income Prediction}
+\title{Rule-Based and LLM-Assisted Evaluation of Counterfactual Explanations for Income Prediction}
 
 \author{
     AFRA Lama,
@@ -57,13 +57,17 @@
 \begin{document}
 
 \maketitle
+\thispagestyle{plain}
+\pagestyle{plain}
 
 \begin{abstract}
-This project studies [selected AI method] in the context of [seminar topic].
-We formulate the research question: [insert research question].
-We review the relevant literature, implement the method, and evaluate it on
-[dataset/task]. Our results show that [main result], while also highlighting
-[main limitation].
+This project studies the evaluation of counterfactual explanations for income
+prediction. We use DiCE to generate counterfactuals on the Adult Income dataset
+and evaluate them with a deterministic metrics-only reference system. We then
+test whether a calibrated single LLM can approximate this reference and whether
+a second LLM call can provide useful human-readable explanations. The calibrated
+single LLM reaches high issue-label agreement with the reference, while the
+explainability layer adds qualitative value without changing the fixed verdicts.
 \end{abstract}
 
 \section{Introduction and Problem Formulation}
@@ -82,20 +86,19 @@ actionable, and sparse, meaning that it should change only a small number of
 features.\\
 \newline
 The project is also related to \textbf{Orchestrate, Secure \& Scale Enterprise
-GenAI Architecture} because we implement a multi-agent LLM pipeline for
-evaluating these explanations. The seminar discussed generative AI workflows,
-orchestration of AI services, hallucination control, auditability, human
-validation, and trustworthy LLM systems. Our
-pipeline follows this perspective by using several LLM-based roles, including a
-Prosecutor, Defense agent, Expert Witness, Judge, and Single Evaluator baseline,
-to assess counterfactual quality in a structured and auditable way.\\
+GenAI Architecture} because we implement an LLM-assisted evaluation pipeline.
+The seminar discussed generative AI workflows, orchestration of AI services,
+hallucination control, auditability, human validation, and trustworthy LLM
+systems. Our final pipeline follows this perspective by using a calibrated
+single-LLM evaluator and a separate explanation layer around a deterministic
+reference system.\\
 \newline
 The main research question addressed in this report is:
 
 \begin{quote}
-    \emph{Do LLM-based evaluators provide added value over deterministic
-    metrics for assessing counterfactual explanation quality, and does
-    adversarial multi-agent debate improve over a single-LLM evaluator?}
+    \emph{Can a calibrated single LLM approximate a deterministic metrics-only
+    reference for counterfactual quality evaluation, and can an explanation
+    layer add useful human-facing interpretation without changing the verdict?}
 \end{quote}
 \noindent
 This question is relevant because counterfactual generation methods such as DiCE
@@ -112,8 +115,9 @@ ground-truth labels exist for the quality of these counterfactual explanations,
 we use a deterministic metrics-only evaluator as a rule-based reference
 standard. This reference encodes our project-specific human judgment through
 explicit heuristics and thresholds over validity, sparsity, proximity,
-confidence, and plausibility checks. We then compare a single-LLM evaluator and
-a multi-agent adversarial debate system against this reference.\\
+confidence, and plausibility checks. We then evaluate whether a single LLM can
+substitute for this reference at the issue-label level and whether an optional
+explanation layer makes the verdicts easier to inspect.\\
 \newline
 We evaluate this question on the OpenML Adult Income dataset, where the task is
 to predict whether a person's income is above or below \$50K.
@@ -166,9 +170,8 @@ into three relevant families of methods:
 \noindent
 This taxonomy positions our project in the third family. We do not only generate
 counterfactual explanations; we study how their quality should be evaluated. In
-particular, we compare deterministic quality metrics with an LLM-based
-multi-agent audit that reasons about the same counterfactuals from several
-perspectives.
+particular, we use deterministic quality metrics and heuristics as a stable
+reference, then test whether an LLM can reproduce and explain that reference.
 
 \subsection{Seminal and Recent Works}
 \noindent
@@ -197,13 +200,13 @@ counterfactual may be close in feature space while still proposing an impossible
 change, such as decreasing a person's age from 30 to 25. Similarly, numerical
 metrics may not fully capture fairness, realism, or causal coherence.\\
 \newline
-Our project addresses this gap with a multi-agent collaborative audit of
-counterfactual explanations. Because there is no external ground truth for these
-quality labels, our deterministic metrics-only evaluator acts as the reference
-standard: it encodes our human judgment through explicit rules over metrics and
-issue-specific plausibility checks. The LLM evaluators are then assessed by how
-well they reproduce, justify, or meaningfully challenge this rule-based
-assessment. To make the audit operational, we define a small issue taxonomy
+Our project addresses this gap with a deterministic reference evaluator and an
+LLM-assisted explanation layer. Because there is no external ground truth for
+these quality labels, our metrics-only evaluator acts as the reference standard:
+it encodes human judgment through explicit rules over metrics and
+issue-specific plausibility checks. The LLM is then assessed by how well it
+reproduces this reference and whether it can explain the result in clearer
+language. To make the audit operational, we define a small issue taxonomy
 covering implausible time-dependent changes, extreme working hours,
 unactionable capital shifts, too many simultaneous changes, and fragile
 counterfactuals; the next section describes how these labels are used in the
@@ -248,8 +251,9 @@ These metrics are useful for ranking and filtering counterfactuals, and they
 are close to the criteria commonly used in DiCE-style generation. However, they
 remain purely numerical. They do not directly represent whether a
 counterfactual is plausible, actionable, or convincing from a human perspective.
-We therefore add an issue taxonomy that provides a second evaluation layer. The
-taxonomy defines a fixed vocabulary of possible counterfactual failures:
+We therefore add a five-label issue taxonomy that provides a second evaluation
+layer. The taxonomy defines a fixed vocabulary of possible counterfactual
+failures:
 \begin{itemize}
     \item \texttt{implausible\_time\_dependent\_change}: age decreases,
     education decreases, education increases without sufficient age increase,
@@ -266,11 +270,11 @@ taxonomy defines a fixed vocabulary of possible counterfactual failures:
 \end{itemize}
 \noindent
 Each label corresponds to a specific failure mode in the generated
-counterfactual. This taxonomy gives all evaluation strategies the same
-vocabulary: the metrics-only evaluator, the single-LLM evaluator, and the
-multi-agent LLM evaluator all reason over the same issue labels. It also
-constrains the LLM-based evaluators by discouraging free-form criticism that is
-not grounded in the predefined evaluation framework.\\
+counterfactual. The previous label
+\texttt{inconsistent\_work\_profile} was removed from the active taxonomy
+because the deterministic rules did not detect it reliably and LLM outputs
+tended to overuse it. This reduces noisy labels and keeps all evaluation
+strategies aligned with the same vocabulary.\\
 \newline
 We operationalize the taxonomy through deterministic heuristic rules. These
 rules encode human-designed plausibility checks over the original instance, the
@@ -278,7 +282,9 @@ counterfactual, and the numerical metrics. For example, they flag decreases in
 age, unrealistic changes in education or working hours, large unexplained
 capital shifts, excessive simultaneous modifications, and low-margin favorable
 predictions. The heuristic module returns the set of issue labels detected for
-each counterfactual.\\
+each counterfactual. We also compute metric warnings, including
+\texttt{count\_diversity\_low}, which flags counterfactual sets with low
+diversity. These warnings inform severity but are not scored taxonomy labels.\\
 \newline
 Finally, we define a metrics-only deterministic evaluator. This evaluator does
 not use an LLM. It receives as input the generated counterfactuals, their
@@ -295,51 +301,40 @@ taxonomy. It outputs two judgments for each counterfactual:
 This deterministic evaluator acts as the rule-based reference against which the
 LLM-based evaluation strategies are compared.\\
 \newline
-\textbf{Single-LLM evaluator.} The second evaluation strategy is a single LLM
-baseline. It receives the same information as the metrics-only evaluator, but
-formatted as a structured prompt. The prompt contains the original individual
-profile, the generated counterfactuals, the feature changes, the numerical
-metrics, the heuristic issue evidence, and the taxonomy instructions. The model
-then produces one structured verdict for each counterfactual, including an
-overall label, such as \texttt{fair}, \texttt{ambiguous}, or \texttt{unfair},
-and a short justification. This baseline tests whether LLM reasoning alone adds
-value over deterministic metrics before introducing multi-agent debate.\\
-\newline
-\textbf{Multi-agent adversarial debate.} The central model of the project is an
-LLM-based multi-agent debate system implemented with the Python framework
-AutoGen. This system operationalizes the main research question by testing
-whether adversarial role-based discussion improves counterfactual evaluation
-beyond a single LLM. It uses four specialized agents:
+\textbf{Single-LLM substitution evaluator.} The main LLM-based system is a
+single evaluator prompted to approximate the metrics-only reference. It receives
+the original profile, generated counterfactuals, feature changes, numerical
+metrics, heuristic issue evidence, and taxonomy instructions. The prompt is
+calibrated to:
 \begin{itemize}
-    \item \textbf{Prosecutor:} attacks the counterfactual and identifies
-    possible flaws.
-    \item \textbf{Defense attorney:} defends the counterfactual and argues for
-    its validity, plausibility, and usefulness.
-    \item \textbf{Expert witness:} summarizes the numerical metrics and the
-    heuristic evidence derived from the issue taxonomy.
-    \item \textbf{Judge:} synthesizes the previous arguments into a final
-    structured verdict.
+    \item approximate the metrics-only reference rather than invent a new
+    evaluation policy;
+    \item start from the heuristic issue union
+    \texttt{flagged\_issues\_union};
+    \item keep labels supported by deterministic heuristic evidence;
+    \item avoid unsupported labels outside the active taxonomy;
+    \item preserve \texttt{fragile\_counterfactual} when it is present in
+    case-level or counterfactual-level heuristic flags.
 \end{itemize}
 \noindent
-The judge produces the final assessment for each counterfactual in the same
-format as the other evaluators, making the three strategies directly
-comparable.\\
+The output is a structured verdict with an overall assessment
+(\texttt{fair}, \texttt{ambiguous}, or \texttt{unfair}), detected issue labels,
+severity, confidence, and recommended action.\\
 \newline
-All LLM-based components, including the single-LLM evaluator and the four
-debate agents, are controlled through structured prompts. These prompts contain
-explicit rules:
-\begin{itemize}
-    \item use only issue labels from the predefined taxonomy;
-    \item do not invent new categories of counterfactual criticism;
-    \item rely on the heuristic flags when discussing plausibility and
-    validity;
-    \item discuss flip robustness using \texttt{cf\_confidence}, where a
-    counterfactual is considered fragile when its confidence is close to the
-    0.5 decision threshold.
-\end{itemize}
-\noindent
-These constraints make the LLM outputs auditable and keep all evaluators
-aligned with the same evaluation framework.
+\textbf{Explanation layer.} In the final version, explainability is added as a
+second LLM call after the verdict is fixed. This layer receives the fixed
+single-LLM verdict and compact case evidence, then produces an
+\texttt{expert\_explanation} for a non-expert reader. It is explicitly
+forbidden from changing issue labels, severity, assessment, confidence, or the
+recommended action. This separates the substitution task from the human-facing
+interpretation task.\\
+\newline
+\textbf{Earlier multi-agent system.} A multi-agent AutoGen debate with
+Prosecutor, Defense attorney, Expert witness, and Judge was implemented during
+the project. In the final Phase 2 framing, however, the central evaluation is
+the single-LLM substitution and explanation pipeline, because the goal is to
+measure approximation of the deterministic reference rather than to prove that
+debate is more correct.
 
 % We now describe [selected method]. The method aims to [goal of method].
 % At a high level, it works by [main algorithmic idea].
@@ -401,16 +396,18 @@ loss, hours worked per week, and native country. For the evaluation stage:
 
 \subsection{Baselines}
 
-We compare three counterfactual evaluators. The metrics-only evaluator is used
-as the rule-based reference, i.e., the ground-truth baseline for comparing the
-LLM-based systems.
+We compare the LLM systems against the metrics-only evaluator. This evaluator is
+not an external ground truth, but it is the deterministic reference system used
+for substitution scoring.
 \begin{itemize}
-    \item \textbf{Metrics-only baseline:} deterministic evaluator based on
+    \item \textbf{Metrics-only reference:} deterministic evaluator based on
     numerical metrics and heuristic issue flags.
-    \item \textbf{Single-LLM evaluator:} one LLM produces a structured verdict
-    from the same case evidence.
-    \item \textbf{Multi-agent LLM evaluator:} AutoGen debate between
-    Prosecutor, Defense attorney, Expert witness, and Judge.
+    \item \textbf{Uncalibrated single LLM:} one LLM produces a structured
+    verdict from the same case evidence.
+    \item \textbf{Calibrated single LLM:} the single-LLM prompt is constrained
+    to approximate the metrics-only reference and preserve heuristic labels.
+    \item \textbf{Calibrated single LLM with explanation:} the calibrated
+    verdict is followed by a second LLM call that explains the fixed verdict.
 \end{itemize}
 
 \subsection{Metrics}
@@ -419,6 +416,8 @@ Evaluation focuses on agreement with the metrics-only reference:
 \begin{itemize}
     \item \textbf{Detection rate:} percentage of taxonomy issue labels from the
     metrics-only reference that are also identified by the evaluated system.
+    \item \textbf{False-positive rate:} percentage of cases where the evaluated
+    system adds issue labels absent from the reference.
     \item \textbf{Exact match rate:} percentage of cases for which the complete
     predicted issue-label set exactly matches the metrics-only reference set.
 \end{itemize}
@@ -426,88 +425,99 @@ Evaluation focuses on agreement with the metrics-only reference:
 \subsection{Implementation Details}
 
 The implementation is written in Python. Counterfactuals are generated with
-DiCE, and the LLM-based evaluators are implemented with AutoGen. Both the
-single-LLM evaluator and the multi-agent debate use the same provider and base
-model.
+DiCE, and the LLM-based evaluators are implemented with AutoGen. The final
+Phase 2 experiments use Groq with \texttt{llama-3.1-8b-instant}.
 
 \begin{table}[H]
 \centering
 \small
 \begin{tabular}{lcc}
 \toprule
-Setting & Single LLM & Multi-agent LLM \\
+Setting & Calibrated LLM & LLM + explanation \\
 \midrule
 Framework & AutoGen & AutoGen \\
 Provider & Groq & Groq \\
 Model & \multicolumn{2}{c}{\texttt{llama-3.1-8b-instant}} \\
 Temperature & \multicolumn{2}{c}{0.2} \\
-Max tokens & 700 & 250 \\
+Max tokens & 400 & 700 \\
 \bottomrule
 \end{tabular}
-\caption{LLM configuration used in the final experiments.}
+\caption{LLM configuration used in the final Phase 2 experiments.}
 \label{tab:llm-config}
 \end{table}
 
 \noindent
 The temperature is set to 0.2 to keep outputs conservative while avoiding fully
-deterministic generation. The single-LLM evaluator uses a larger completion
-budget because it produces one main verdict. The multi-agent debate uses a
-smaller budget to keep the accumulated debate and Judge request under Groq's
-token limits.
+deterministic generation. The final explainability run uses a larger completion
+budget because it adds a second-stage human-readable explanation. Earlier
+multi-agent experiments used a smaller 250-token budget to stay under Groq's
+token limits, but the final Phase 2 evaluation focuses on the single-LLM
+substitution and explanation pipeline.
 
 \section{Results and Analysis}
 
 Table~\ref{tab:results} summarizes the main experimental results.
 
-\begin{table}[t]
+\begin{table}[H]
 \centering
+\small
 \begin{tabular}{lccc}
 \toprule
-Method & Metric 1 & Metric 2 & Metric 3 \\
+System & Detect. & FP & Exact \\
 \midrule
-Baseline 1 & -- & -- & -- \\
-Baseline 2 & -- & -- & -- \\
-Selected method & -- & -- & -- \\
+Uncalibrated single LLM & 84.0\% & 0.0\% & 60.0\% \\
+Calibrated single LLM & 96.0\% & 0.0\% & 90.0\% \\
+LLM + explanation layer & 96.0\% & 10.0\% & 80.0\% \\
 \bottomrule
 \end{tabular}
-\caption{Experimental results comparing the selected method with baselines.}
+\caption{Substitution scores against the metrics-only reference.}
 \label{tab:results}
 \end{table}
 
-The results show that [main observation]. Compared with [baseline], the selected
-method [performs better/worse] in terms of [metric]. This suggests that [analysis].
-
-However, the method also presents limitations. First, [limitation 1]. Second,
-[limitation 2]. These limitations are important because they affect [robustness,
-scalability, interpretability, feasibility, etc.].
-
-Figure~\ref{fig:example} illustrates [what the figure shows].
-
-% \begin{figure}[t]
-% \centering
-% % Replace this with your actual figure file
-% \includegraphics[width=0.95\columnwidth]{figures/example.pdf}
-% \caption{Example result produced by the method.}
-% \label{fig:example}
-% \end{figure}
+Prompt calibration substantially improves issue-label substitution. Detection
+increases from 84.0\% to 96.0\%, and exact match increases from 60.0\% to
+90.0\%. This shows that the LLM performs best when it is instructed to follow
+the deterministic heuristic evidence rather than act as a free-form evaluator.\\
+\newline
+The final explainability run keeps the same 96.0\% detection rate but has lower
+exact match, 80.0\%, and a 10.0\% false-positive rate. This is interpreted as
+normal LLM variability in a fresh run, not as the explanation layer changing the
+labels: the explanation is generated only after the verdict is fixed.
 
 \section{Discussion}
 
-The experiments indicate that [answer to research question]. The main strength
-of [selected method] is [strength]. This makes it suitable for [setting].
-
-Nevertheless, the method assumes that [assumption]. In practice, this assumption
-may not hold when [case]. Another limitation is [another limitation].
-
-Possible improvements include [future improvement], [extension], or combining
-the method with [other approach].
+The results support the Phase 2 framing of the project. The deterministic
+metrics-only evaluator is the stable backbone: it defines the reference issue
+labels and keeps the evaluation auditable. The calibrated single LLM can
+approximate this reference well at the issue-label level, but only when the
+prompt explicitly tells it to preserve deterministic heuristic evidence. This
+suggests that the LLM is more reliable as a structured substituter than as an
+independent judge.\\
+\newline
+The explanation layer provides the clearest added value. It does not improve the
+quantitative substitution scores, and it is not allowed to change the verdict.
+Instead, it translates the fixed structured assessment into language that is
+easier for a reader to understand. This is useful because the metrics-only
+reference is precise and reproducible, but its raw issue labels and thresholds
+are not always self-explanatory.\\
+\newline
+The main limitation is that the reference itself is rule-based. It reflects our
+designed heuristics, not an external human-labeled ground truth. In addition,
+LLM outputs remain variable across runs, as shown by the difference between the
+best calibrated run and the final explainability run. Future work could test a
+larger model, add human annotations, or calibrate the metric-warning thresholds
+such as \texttt{count\_diversity\_low}.
 
 \section{Conclusion}
 
-This report studied [selected method] for [task/problem]. We reviewed the
-relevant literature, implemented the method, and evaluated it experimentally.
-Our findings suggest that [main conclusion]. Future work could investigate
-[future direction].
+This report studied counterfactual explanation evaluation for income prediction.
+We generated counterfactuals with DiCE, evaluated them with a deterministic
+metrics-only reference, and tested whether a single LLM could approximate and
+explain that reference. The final conclusion is that deterministic rules remain
+the evaluation backbone, while the calibrated LLM is useful as a low-cost
+substitution and explanation layer. Its strongest contribution is not superior
+correctness, but clearer human-facing interpretation of an auditable rule-based
+verdict.
 
 \bibliography{references}
 
