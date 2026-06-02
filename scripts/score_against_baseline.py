@@ -81,9 +81,14 @@ def _score_system(
     system_verdicts: dict[int, dict[str, Any]],
     reference_verdicts: dict[int, dict[str, Any]],
 ) -> tuple[dict[str, Any], dict[int, dict[str, Any]]]:
-    total_reference_issues = 0
-    detected_reference_issues = 0
-    false_positive_cases = 0
+    # Label-level confusion counts, treating each reference issue label as the
+    # positive class. These feed the unified Phase-1 vocabulary (precision /
+    # recall / F1) so substitution scoring and ground-truth scoring report the
+    # same metrics. recall is the former "detection rate"; precision penalises
+    # extra labels the reference did not flag.
+    true_positives = 0   # labels in both reference and system
+    false_negatives = 0  # reference labels the system missed
+    false_positives = 0  # system labels absent from the reference
     exact_match_cases = 0
     assessment_matches = 0
     severity_matches = 0
@@ -100,10 +105,9 @@ def _score_system(
         extra = sorted(system_issues - reference_issues)
         exact = system_issues == reference_issues
 
-        total_reference_issues += len(reference_issues)
-        detected_reference_issues += len(reference_issues & system_issues)
-        if extra:
-            false_positive_cases += 1
+        true_positives += len(reference_issues & system_issues)
+        false_negatives += len(missed)
+        false_positives += len(extra)
         if exact:
             exact_match_cases += 1
         if _field_match(system_verdict, reference_verdict, "overall_assessment"):
@@ -121,19 +125,24 @@ def _score_system(
         }
 
     total_cases = len(reference_verdicts)
-    detection_rate = (
-        detected_reference_issues / total_reference_issues * 100
-        if total_reference_issues
-        else 100.0
-    )
+    predicted_positives = true_positives + false_positives
+    reference_positives = true_positives + false_negatives
+
+    recall = true_positives / reference_positives * 100 if reference_positives else 100.0
+    precision = true_positives / predicted_positives * 100 if predicted_positives else 100.0
+    f1 = (2 * precision * recall / (precision + recall)) if (precision + recall) else 0.0
 
     summary = {
-        "detection_rate": round(detection_rate, 2),
-        "false_positive_rate": round(false_positive_cases / total_cases * 100, 2) if total_cases else 0.0,
+        "precision": round(precision, 2),
+        "recall": round(recall, 2),
+        "f1": round(f1, 2),
         "exact_match_rate": round(exact_match_cases / total_cases * 100, 2) if total_cases else 0.0,
         "assessment_agreement": round(assessment_matches / total_cases * 100, 2) if total_cases else 0.0,
         "severity_agreement": round(severity_matches / total_cases * 100, 2) if total_cases else 0.0,
         "recommended_action_agreement": round(action_matches / total_cases * 100, 2) if total_cases else 0.0,
+        "true_positives": true_positives,
+        "false_positives": false_positives,
+        "false_negatives": false_negatives,
         "total_cases": total_cases,
         "cases_with_perfect_match": exact_match_cases,
     }
@@ -237,15 +246,16 @@ def main() -> None:
             json.dump(output, f, indent=2)
             f.write("\n")
 
-    print("System        Detect%   FP%   ExactMatch%   AssessAgree%")
+    print("System        Prec%  Recall%   F1%   ExactMatch%   AssessAgree%")
     for mode in ("single_llm", "multi_agent"):
         if mode not in summaries:
             continue
         summary = summaries[mode]
         print(
             f"{SYSTEM_LABELS[mode]:<12}"
-            f"{summary['detection_rate']:>7.1f}%"
-            f"{summary['false_positive_rate']:>6.1f}%"
+            f"{summary['precision']:>6.1f}%"
+            f"{summary['recall']:>8.1f}%"
+            f"{summary['f1']:>6.1f}%"
             f"{summary['exact_match_rate']:>12.1f}%"
             f"{summary['assessment_agreement']:>13.1f}%"
         )
