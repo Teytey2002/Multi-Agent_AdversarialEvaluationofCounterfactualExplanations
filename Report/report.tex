@@ -1,11 +1,6 @@
 \documentclass[letterpaper]{article}
 
-% AAAI 2026 style.
-% Use [submission] if you want the anonymous/submission version.
-% For a course report with visible names, try without [submission].
 \usepackage{aaai2026}
-
-% Required / standard AAAI packages
 \usepackage{times}
 \usepackage{helvet}
 \usepackage{courier}
@@ -13,511 +8,192 @@
 \usepackage{graphicx}
 \usepackage{natbib}
 \usepackage{caption}
-
-% Useful packages
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{booktabs}
 \usepackage{multirow}
-
-% Optional: algorithms
 \usepackage{algorithm}
 \usepackage{algorithmic}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
 
 \urlstyle{rm}
 \def\UrlFont{\rm}
 \frenchspacing
-
-% US Letter page size, as required by AAAI
 \setlength{\pdfpagewidth}{8.5in}
 \setlength{\pdfpageheight}{11in}
-
-% No section numbering, AAAI-style
 \setcounter{secnumdepth}{0}
+\setlength{\textfloatsep}{6pt plus 1pt minus 1pt}
+\setlength{\floatsep}{6pt plus 1pt minus 1pt}
+\setlength{\intextsep}{6pt plus 1pt minus 1pt}
 
-\pdfinfo{
-/TemplateVersion (2026.1)
-}
+\pdfinfo{/TemplateVersion (2026.1)}
 
-\title{Rule-Based and LLM-Assisted Evaluation of Counterfactual Explanations for Income Prediction}
+\title{Evaluating Counterfactual Explanations with Deterministic Heuristics and LLM-Based Review}
 
 \author{
     AFRA Lama,
     MORTADA Daniel,
     RIABICHEFF Ivan,
-    DESOIL Théo
+    DESOIL Theo
 }
 
 \affiliations{
     Universit\'e Libre de Bruxelles\\
-    INFO-H512 Project\\
+    INFO-H512 Current Trends of Artificial Intelligence\\
     \{lama.afra, daniel.mortada, ivan.riabicheff, theo.desoil\}@ulb.be
 }
 
 \begin{document}
-
 \maketitle
 \thispagestyle{plain}
 \pagestyle{plain}
 
 \begin{abstract}
-This project studies the evaluation of counterfactual explanations for income
-prediction. We use DiCE to generate counterfactuals on the Adult Income dataset
-and evaluate them with a deterministic metrics-only reference system. We then
-test whether a calibrated single LLM can approximate this reference and whether
-a second LLM call can provide useful human-readable explanations. The calibrated
-single LLM reaches high issue-label agreement with the reference, while the
-explainability layer adds qualitative value without changing the fixed verdicts.
+Counterfactual explanations are attractive because they translate model decisions into actionable ``what would need to change'' statements. However, standard counterfactual metrics such as validity, proximity, sparsity, and diversity do not by themselves determine whether the proposed changes are plausible, actionable, or fair. We implement an end-to-end evaluation pipeline for DiCE counterfactuals on the Adult Income dataset. The pipeline trains a Logistic Regression classifier, generates DiCE counterfactuals for ten unfavourable predictions, evaluates them with two deterministic layers --- quantitative metrics and domain heuristics --- and then compares LLM-based evaluators against that structured evidence. In Phase 1, we implemented both a single-LLM evaluator and a multi-agent debate architecture; the debate was runnable but less reliable and more costly than the simpler baselines. In Phase 2, we reframed the task as substitution feasibility: can a calibrated single LLM approximate the metrics-only reference system while adding human-readable explanations? Calibration improved issue-label recall from 84\% to 96\% and exact issue-set match from 60\% to 90\% at 100\% precision; the optional explanation layer preserved 96\% recall while producing non-expert rationales at a higher (but still negligible) cost.
 \end{abstract}
 
-\section{Introduction and Problem Formulation}
-\noindent
-This project connects two seminar themes: \textbf{Counterfactuals for
-Explainability and Fairness in Machine Learning} and \textbf{Orchestrate,
-Secure \& Scale Enterprise GenAI Architecture}. It is related to the first
-seminar because we study counterfactual explanations for a binary income
-prediction model. Given a person
-whose income is predicted to be below \$50K, we use DiCE to generate
-counterfactual examples that would change the model prediction to above \$50K.
-The central question is not only whether these counterfactuals flip the model
-output, but whether they are good explanations. In the context of explainable
-AI, a useful counterfactual should be close to the original input, plausible,
-actionable, and sparse, meaning that it should change only a small number of
-features.\\
-\newline
-The project is also related to \textbf{Orchestrate, Secure \& Scale Enterprise
-GenAI Architecture} because we implement an LLM-assisted evaluation pipeline.
-The seminar discussed generative AI workflows, orchestration of AI services,
-hallucination control, auditability, human validation, and trustworthy LLM
-systems. Our final pipeline follows this perspective by using a calibrated
-single-LLM evaluator and a separate explanation layer around a deterministic
-reference system.\\
-\newline
-The main research question addressed in this report is:
+\section{Related Work and Problem Framing}
+Counterfactual explanations answer a practical question: what minimal change to an input would have flipped a model's decision? \citet{wachter2017counterfactual} formalised them as a way to explain automated decisions without exposing model internals --- instead of reporting which coefficients mattered, a system states which input attributes would have produced a different outcome. This user-facing form is what makes counterfactuals attractive for explainable AI: in income prediction, a person classified as earning at most \$50K can be shown which feature changes would move the classifier to predict income above \$50K.
 
-\begin{quote}
-    \emph{Can a calibrated single LLM approximate a deterministic metrics-only
-    reference for counterfactual quality evaluation, and can an explanation
-    layer add useful human-facing interpretation without changing the verdict?}
-\end{quote}
-\noindent
-This question is relevant because counterfactual generation methods such as DiCE
-typically select counterfactuals using deterministic criteria. These include
-\textbf{validity}, which checks whether the generated counterfactual flips the
-model prediction; \textbf{proximity}, which favors small changes from the
-original input; \textbf{sparsity}, which favors changing few features; and
-\textbf{feasibility}, which can restrict which features are allowed to change.
-These metrics are necessary, but they do not fully capture whether a proposed
-change is realistic, fair, causally coherent, or convincing from a human
-perspective. We therefore test whether LLM-based evaluators provide additional
-useful assessment of the counterfactuals generated by DiCE. Since no external
-ground-truth labels exist for the quality of these counterfactual explanations,
-we use a deterministic metrics-only evaluator as a rule-based reference
-standard. This reference encodes our project-specific human judgment through
-explicit heuristics and thresholds over validity, sparsity, proximity,
-confidence, and plausibility checks. We then evaluate whether a single LLM can
-substitute for this reference at the issue-label level and whether an optional
-explanation layer makes the verdicts easier to inspect.\\
-\newline
-We evaluate this question on the OpenML Adult Income dataset, where the task is
-to predict whether a person's income is above or below \$50K.
+The difficulty is that a counterfactual can be valid for the classifier yet weak as advice. It may edit many attributes at once, touch protected or non-actionable features, propose temporally impossible changes (e.g.\ more education with no added years of age), or land just past the decision boundary so that a small perturbation flips it back. Work on algorithmic recourse therefore emphasises feasibility and actionability: a useful counterfactual must describe changes a person could plausibly make, not merely changes that satisfy the model \citep{karimi2021algorithmic}. DiCE, the generator we use, addresses part of this by producing a \emph{diverse set} of counterfactuals optimised for validity, proximity, sparsity, and diversity \citep{mothilal2020explaining}, and graph-based methods such as FACE enforce feasible paths along the data manifold \citep{poyiadzi2020face}. The common thread is that these objectives are necessary but not sufficient: a counterfactual set can be numerically diverse and proximal while still recommending implausible or unfair interventions, because recourse quality depends on domain constraints that the standard metrics do not encode.
 
-% The goal of this project is to study in depth a state-of-the-art AI method
-% presented in the seminar. We focus on the topic of [seminar topic], and more
-% specifically on [selected method].
+This gap motivates our research question: \emph{how can DiCE-generated counterfactuals be evaluated beyond standard numerical metrics, and can LLM-based evaluators substitute or complement a deterministic, policy-grounded reference?} The project connects two seminar themes --- counterfactual explanations as an XAI method, and GenAI orchestration --- by defining one shared, structured case representation and running three evaluators over it (Fig.~\ref{fig:pipeline}): a deterministic heuristic baseline, a single LLM, and a four-role adversarial debate. We deliberately treat LLM evaluation as an empirical question rather than an assumption. The work has two phases. \textbf{Phase 1} compares the three architectures against a team-drafted reference and yields a negative result for the debate. \textbf{Phase 2}, prompted by an internal methodology critique, reframes the task as \emph{substitution feasibility}: instead of asking whether LLMs beat rules, we ask how closely, and at what cost, a calibrated LLM can reproduce the deterministic reference while adding human-readable explanations. The contribution is therefore not that LLMs universally replace rules, but a delimited account of when rules are preferable, when an LLM can approximate them, and where LLM explanations add interpretive value.
 
-% The main research question addressed in this report is:
-
-% \begin{quote}
-%     \emph{[Write your precise research question here.]}
-% \end{quote}
-
-% This question is relevant because [motivation]. In this work, we [reproduce /
-% apply / extend / compare] the method by implementing it and evaluating it on
-% [dataset or problem setting].
-
-% Our contributions are:
-% \begin{itemize}
-%     \item a targeted literature review of [research area];
-%     \item an implementation of [selected method];
-%     \item an experimental evaluation on [dataset/task];
-%     \item a critical analysis of the method's strengths, assumptions, and limitations.
-% \end{itemize}
-
-\section{Related Work}
-
-\subsection{Taxonomy of the Research Area}
-
-Machine learning is increasingly used in high-impact domains such as healthcare,
-finance, and banking. This makes explainability important, because many useful
-models are difficult to interpret directly. The research area can be divided
-into three relevant families of methods:
-\begin{itemize}
-    \item \textbf{Intrinsically interpretable models:} methods such as linear
-    models or decision trees are easier to inspect because their decision
-    process is relatively transparent. However, they may be less flexible than
-    more complex models.
-    \item \textbf{Post-hoc counterfactual explanations:} these methods explain a
-    model decision by asking what minimal changes to the input would have led to
-    a different prediction. They are useful because they can explain individual
-    decisions without requiring access to the internal structure of the model.
-    \item \textbf{Counterfactual quality evaluation:} generated
-    counterfactuals are usually assessed with metrics such as validity,
-    proximity, sparsity, diversity, and feasibility. These metrics are useful
-    but incomplete, because they do not always capture whether a recommendation
-    is realistic, fair, or actionable in the real world.
-\end{itemize}
-\noindent
-This taxonomy positions our project in the third family. We do not only generate
-counterfactual explanations; we study how their quality should be evaluated. In
-particular, we use deterministic quality metrics and heuristics as a stable
-reference, then test whether an LLM can reproduce and explain that reference.
-
-\subsection{Seminal and Recent Works}
-\noindent
-Counterfactual explanations were introduced as a way to explain automated
-decisions without opening the black box of the underlying model
-\citep{wachter2017counterfactual}. Instead of describing all internal model
-mechanisms, a counterfactual explanation answers a local question: what would
-need to change in this input for the model to produce a different outcome? For a
-classification task, this means showing how an unfavorable prediction could be
-changed into a favorable one.\\
-\newline
-Later work extended this idea by emphasizing diversity and actionability, rather
-than validity alone. DiCE generates multiple diverse counterfactual alternatives
-for a given instance, giving users several possible paths toward the desired
-outcome instead of a single potentially unrealistic modification
-\citep{mothilal2020explaining}. This is the counterfactual generation framework
-used in our project.\\
-\newline
-However, DiCE-style evaluation still relies heavily on numerical criteria.
-Validity checks whether the model prediction flips; proximity measures how close
-the counterfactual is to the original instance; sparsity measures how many
-features change; diversity measures variation among generated alternatives; and
-feasibility constrains which features may be modified. These criteria are
-necessary, but they can miss important semantic failures. For example, a
-counterfactual may be close in feature space while still proposing an impossible
-change, such as decreasing a person's age from 30 to 25. Similarly, numerical
-metrics may not fully capture fairness, realism, or causal coherence.\\
-\newline
-Our project addresses this gap with a deterministic reference evaluator and an
-LLM-assisted explanation layer. Because there is no external ground truth for
-these quality labels, our metrics-only evaluator acts as the reference standard:
-it encodes human judgment through explicit rules over metrics and
-issue-specific plausibility checks. The LLM is then assessed by how well it
-reproduces this reference and whether it can explain the result in clearer
-language. To make the audit operational, we define a small issue taxonomy
-covering implausible time-dependent changes, extreme working hours,
-unactionable capital shifts, too many simultaneous changes, and fragile
-counterfactuals; the next section describes how these labels are used in the
-evaluation pipeline.
-
-\section{Method}
-
-The original predictive task is binary classification on the Adult Income
-dataset, where the model predicts whether an individual's income is at most or
-above \$50K. We train a Logistic Regression model inside an \texttt{sklearn} pipeline. 
-This model is used for counterfactual generation because DiCE requires reliable class-probability
-outputs that can guide its optimization procedure.\\
-\newline
-Before generating counterfactuals with DiCE, we define a feature policy that
-freezes attributes that should not be modified: \texttt{fnlwgt}, marital
-status, relationship, race, sex, and native country. Counterfactuals are
-therefore not allowed to assign different values to these features, since doing
-so would imply unfair or unrealistic demands on the individual.\\
-\newline
-After training the predictive model and applying this feature policy, we
-generate counterfactual explanations with DiCE. For each individual with an
-unfavorable prediction, DiCE produces multiple candidate counterfactuals that
-aim to move the prediction to the favorable class. We keep the DiCE generation
-parameters at their default values and use the feature policy only to restrict
-which attributes may change.\\
-\newline
-For each generated counterfactual, we compute a first set of standard numerical
-quality metrics:
-\begin{itemize}
-    \item \textbf{Validity:} whether the counterfactual reaches the favorable
-    class.
-    \item \textbf{Proximity:} how close the counterfactual remains to the
-    original instance.
-    \item \textbf{Sparsity:} how many features are changed.
-    \item \textbf{Diversity:} how different the generated counterfactuals are
-    from each other.
-    \item \textbf{Counterfactual confidence:} the model probability assigned to
-    the favorable class for the counterfactual.
-\end{itemize}
-\noindent
-These metrics are useful for ranking and filtering counterfactuals, and they
-are close to the criteria commonly used in DiCE-style generation. However, they
-remain purely numerical. They do not directly represent whether a
-counterfactual is plausible, actionable, or convincing from a human perspective.
-We therefore add a five-label issue taxonomy that provides a second evaluation
-layer. The taxonomy defines a fixed vocabulary of possible counterfactual
-failures:
-\begin{itemize}
-    \item \texttt{implausible\_time\_dependent\_change}: age decreases,
-    education decreases, education increases without sufficient age increase,
-    or age/education becomes non-integer.
-    \item \texttt{extreme\_working\_hours}: weekly working hours become
-    dangerously high, implausibly low, or change by an unrealistic amount.
-    \item \texttt{unactionable\_capital\_shift}: capital gain or capital loss
-    changes in a financially unrealistic way.
-    \item \texttt{too\_many\_changes}: too many actionable features are changed
-    at the same time.
-    \item \texttt{fragile\_counterfactual}: the counterfactual only barely
-    reaches the favorable class, with confidence close to the decision
-    threshold.
-\end{itemize}
-\noindent
-Each label corresponds to a specific failure mode in the generated
-counterfactual. The previous label
-\texttt{inconsistent\_work\_profile} was removed from the active taxonomy
-because the deterministic rules did not detect it reliably and LLM outputs
-tended to overuse it. This reduces noisy labels and keeps all evaluation
-strategies aligned with the same vocabulary.\\
-\newline
-We operationalize the taxonomy through deterministic heuristic rules. These
-rules encode human-designed plausibility checks over the original instance, the
-counterfactual, and the numerical metrics. For example, they flag decreases in
-age, unrealistic changes in education or working hours, large unexplained
-capital shifts, excessive simultaneous modifications, and low-margin favorable
-predictions. The heuristic module returns the set of issue labels detected for
-each counterfactual. We also compute metric warnings, including
-\texttt{count\_diversity\_low}, which flags counterfactual sets with low
-diversity. These warnings inform severity but are not scored taxonomy labels.\\
-\newline
-Finally, we define a metrics-only deterministic evaluator. This evaluator does
-not use an LLM. It receives as input the generated counterfactuals, their
-standard numerical metrics, and the heuristic issue flags derived from the issue
-taxonomy. It outputs two judgments for each counterfactual:
-\begin{itemize}
-    \item \textbf{Issue severity:} \texttt{low}, \texttt{medium}, or
-    \texttt{high}, depending on the number and type of detected issues.
-    \item \textbf{Overall assessment:} \texttt{fair}, \texttt{ambiguous}, or
-    \texttt{unfair}, summarizing whether the counterfactual is acceptable as an
-    explanation.
-\end{itemize}
-\noindent
-This deterministic evaluator acts as the rule-based reference against which the
-LLM-based evaluation strategies are compared.\\
-\newline
-\textbf{Single-LLM substitution evaluator.} The main LLM-based system is a
-single evaluator prompted to approximate the metrics-only reference. It receives
-the original profile, generated counterfactuals, feature changes, numerical
-metrics, heuristic issue evidence, and taxonomy instructions. The prompt is
-calibrated to:
-\begin{itemize}
-    \item approximate the metrics-only reference rather than invent a new
-    evaluation policy;
-    \item start from the heuristic issue union
-    \texttt{flagged\_issues\_union};
-    \item keep labels supported by deterministic heuristic evidence;
-    \item avoid unsupported labels outside the active taxonomy;
-    \item preserve \texttt{fragile\_counterfactual} when it is present in
-    case-level or counterfactual-level heuristic flags.
-\end{itemize}
-\noindent
-The output is a structured verdict with an overall assessment
-(\texttt{fair}, \texttt{ambiguous}, or \texttt{unfair}), detected issue labels,
-severity, confidence, and recommended action.\\
-\newline
-\textbf{Explanation layer.} In the final version, explainability is added as a
-second LLM call after the verdict is fixed. This layer receives the fixed
-single-LLM verdict and compact case evidence, then produces an
-\texttt{expert\_explanation} for a non-expert reader. It is explicitly
-forbidden from changing issue labels, severity, assessment, confidence, or the
-recommended action. This separates the substitution task from the human-facing
-interpretation task.\\
-\newline
-\textbf{Earlier multi-agent system.} A multi-agent AutoGen debate with
-Prosecutor, Defense attorney, Expert witness, and Judge was implemented during
-the project. In the final Phase 2 framing, however, the central evaluation is
-the single-LLM substitution and explanation pipeline, because the goal is to
-measure approximation of the deterministic reference rather than to prove that
-debate is more correct.
-
-% We now describe [selected method]. The method aims to [goal of method].
-% At a high level, it works by [main algorithmic idea].
-
-% Given an input $x$, the method computes [output] by solving/estimating:
-
-% \begin{equation}
-%     \hat{y} = f_\theta(x),
-% \end{equation}
-
-% where $f_\theta$ denotes [model/method]. The key steps are:
-
-% \begin{enumerate}
-%     \item [Step 1];
-%     \item [Step 2];
-%     \item [Step 3].
-% \end{enumerate}
-
-% In our implementation, we follow [paper/source] with the following adaptations:
-% [describe simplifications, modifications, or implementation choices].
-
-\section{Experimental Setup}
-
-\subsection{Dataset}
-
-We evaluate the pipeline on the Adult Income dataset. The task is binary
-income prediction: each individual is classified as earning at most \$50K or
-more than \$50K per year.
-
-\begin{table}[H]
+\begin{figure*}[t]
 \centering
-\small
-\begin{tabular}{p{0.36\columnwidth}p{0.54\columnwidth}}
+\begin{tikzpicture}[
+  >={Stealth[round]},
+  box/.style={draw, rounded corners, align=center, font=\footnotesize,
+              inner sep=3pt, text width=24mm, minimum height=10mm},
+  lay/.style={box, fill=black!5},
+]
+\node[box] (ml) at (0,-1.7) {Adult data\\LR classifier\\DiCE genetic CFs};
+\node[box] (bridge) at (3.2,-1.7) {\texttt{cases.json}\\shared case object};
+\node[lay] (ref) at (7.0,0) {Metrics-only reference\\(metrics + heuristics layers)};
+\node[box] (single) at (7.0,-1.7) {Single LLM};
+\node[box] (multi) at (7.0,-3.4) {Multi-agent debate\\(4 roles)};
+\node[box, text width=28mm] (score) at (11.0,-1.7) {Substitution scoring\\precision / recall / F1\\vs.\ reference};
+\draw[->] (ml) -- (bridge);
+\draw[->] (bridge) -- (ref);
+\draw[->] (bridge) -- (single);
+\draw[->] (bridge) -- (multi);
+\draw[->] (ref) -- node[above, font=\scriptsize] {reference} (score);
+\draw[->] (single) -- (score);
+\draw[->] (multi) -- (score);
+\end{tikzpicture}
+\caption{Pipeline. The ML stage (Logistic Regression $+$ DiCE genetic counterfactuals) is bridged into one shared \texttt{cases.json} object that feeds three evaluators. The metrics-only evaluator fuses a quantitative \emph{metrics layer} and a policy-driven \emph{heuristics layer} and serves as the Phase 2 \emph{reference}; the single LLM and the multi-agent debate are scored against it by substitution.}
+\label{fig:pipeline}
+\end{figure*}
+
+\section{Pipeline and Method}
+\paragraph{Dataset and classifier.}
+We use the Adult Income dataset (48{,}842 rows, binary target $>$\$50K). A scikit-learn pipeline stores preprocessing --- median/most-frequent imputation, standardisation, and one-hot encoding --- together with a Logistic Regression classifier, so the identical transformation is applied at training and generation time. We deliberately keep Logistic Regression over a stronger tree ensemble: DiCE's gradient and genetic optimisers integrate cleanly with a differentiable scikit-learn pipeline, and the redundant categorical \texttt{education} column is dropped from training in favour of the ordinal \texttt{education-num}. The model reaches 0.852 accuracy / 0.656 F1 on a stratified held-out split --- adequate, since the goal is evaluating explanations, not maximising classification.
+
+\paragraph{Counterfactual generation.}
+We sample ten individuals with unfavourable predictions and ask DiCE (genetic method) for four counterfactuals each toward the favourable class, following an explicit recourse policy rather than DiCE defaults. Mutable features are \texttt{age}, \texttt{education-num}, \texttt{workclass}, \texttt{occupation}, \texttt{hours-per-week}, \texttt{capital-gain}, and \texttt{capital-loss}; \texttt{fnlwgt}, marital status, relationship, race, sex, and native country are frozen, and \texttt{education} is re-synchronised from \texttt{education-num} after generation as a display label. Each instance receives an empirical per-instance \texttt{permitted\_range}, and the genetic weights are fixed (proximity 0.2, sparsity 0.2, diversity 5.0, categorical penalty 0.1, stopping threshold 0.5) so the generator is held constant across all evaluation experiments.
+
+\paragraph{Two deterministic layers.}
+A bridge layer compiles each generated set into a compact \texttt{cases.json} object --- original instance, prediction confidence, the counterfactual array, and two kinds of precomputed evidence --- consumed identically by all evaluators. The \emph{metrics layer} reports the quantitative DiCE measures that describe the set geometrically: validity, MAD-normalised proximity (median-absolute-deviation scaling, so a \$3000 capital change and a 10-year age change are comparable), sparsity, and diversity. The \emph{heuristics layer} reports semantic recourse problems as five scored issue labels, computed from explicit thresholds (Table~\ref{tab:heuristics}) rather than left to a model to infer. Three evidence categories are kept strictly separate: the scored labels; \emph{constraint violations} (frozen-feature or out-of-range edits, treated as pipeline faults); and \emph{metric warnings} (e.g.\ \texttt{low\_count\_diversity}, derived from the metrics layer). Only the scored labels enter substitution scoring; conflating the three was an explicit design pitfall we avoided.
+
+\begin{table}[t]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\caption{The heuristics layer: the five scored issue labels and the deterministic conditions that fire them. Constraint violations and metric warnings are tracked separately and are \emph{not} scored.}
+\label{tab:heuristics}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}p{1.02in}p{1.22in}@{}}
 \toprule
-Property & Description \\
+Issue label & Fires when \\
 \midrule
-Dataset & Adult Income \\
-Instances & 48,842 \\
-Input features & 14 demographic, educational, occupational, financial, and
-working-time attributes \\
-Prediction task & Binary income classification \\
-Unfavorable class & Predicted income $\leq$ \$50K \\
-Favorable class & Predicted income $>$ \$50K \\
+\texttt{implausible\_}\newline\texttt{time\_dependent\_}\newline\texttt{change} & age/education decreases or is non-integer; age jump $>$8\,y; education jump $>$4 levels; or education rises faster than age \\
+\texttt{extreme\_}\newline\texttt{working\_hours} & hours change $\le\!-10$ or $\ge\!+15$, or result $\le$20 or $\ge$60 \\
+\texttt{unactionable\_}\newline\texttt{capital\_shift} & capital-gain/loss change $\ge$\$3000 \\
+\texttt{too\_many\_}\newline\texttt{changes} & $\ge$3 actionable features change (coupled work/edu pairs count once) \\
+\texttt{fragile\_}\newline\texttt{counterfactual} & \texttt{cf\_confidence} $\in[0.5,0.6)$ \\
 \bottomrule
 \end{tabular}
-\caption{Dataset used in the experiments.}
-\label{tab:dataset}
 \end{table}
 
-\noindent
-The main features include age, education, occupation, capital gain, capital
-loss, hours worked per week, and native country. For the evaluation stage:
-\begin{itemize}
-    \item we select 10 individuals predicted in the unfavorable class;
-    \item DiCE generates multiple counterfactuals for each selected individual;
-    \item DiCE generation uses its default parameters, with the feature policy
-    described in the Method section.
-\end{itemize}
+\paragraph{The reference verdict.}
+The metrics-only evaluator turns this evidence into one verdict per case via fixed rules: starting from the case-level union of flagged labels, it maps severity (any constraint violation or $\ge$2 critical issues $\rightarrow$ high; exactly one critical issue $\rightarrow$ medium; otherwise low), an assessment (\texttt{fair}/\texttt{ambiguous}/\texttt{unfair}), and an action (\texttt{accept}/\texttt{review}/\texttt{reject}). All three evaluators emit the \emph{same} verdict schema, which is what makes them directly comparable:
+{\footnotesize
+\begin{verbatim}
+{ "case_id": 7,
+  "overall_assessment": "unfair",
+  "flagged_issues": ["fragile_counterfactual",
+     "implausible_time_dependent_change",
+     "too_many_changes"],
+  "severity": "high", "confidence": 0.78,
+  "recommended_action": "review" }
+\end{verbatim}}
+\noindent The LLM Judge appends \texttt{VERDICT\_COMPLETE} as a stop token; the optional explanation layer adds an \texttt{expert\_explanation} string. In Phase 2 the metrics-only verdict is the reference system for substitution scoring --- reference because it is reproducible and auditable, not because it is an external oracle.
 
-\subsection{Baselines}
+\paragraph{LLM evaluators.}
+Two LLM reviewers run on Groq's \texttt{llama-3.1-8b-instant}. The single evaluator reads the same case object and emits the schema above. The multi-agent debate uses four roles over a shared AutoGen \texttt{SelectorGroupChat} transcript: Prosecutor (attacks the set), Defense (defends it), Expert Witness (reads the \emph{real} DiCE metrics and never invents numbers), and Judge (synthesises the final verdict). Human reference labels are stripped from every prompt to prevent leakage. Phase 2 calibrates the single evaluator with an explicit substitution frame: start from \texttt{heuristic\_summary.flagged\_issues\_union}, keep each candidate unless the case evidence contradicts it, never add a label absent from all heuristic flags, and specifically never drop \texttt{fragile\_counterfactual} merely because a more severe issue is present. A separate, toggleable explainability layer then makes a \emph{second} LLM call that explains the already-fixed verdict in 120--180 words for non-experts; it cannot alter any label, severity, assessment, or action. A single-pass design that emitted verdict and explanation together was tested and rejected: on a case-7 smoke test the added explanation burden caused the model to silently drop \texttt{fragile\_counterfactual} from the verdict.
 
-We compare the LLM systems against the metrics-only evaluator. This evaluator is
-not an external ground truth, but it is the deterministic reference system used
-for substitution scoring.
-\begin{itemize}
-    \item \textbf{Metrics-only reference:} deterministic evaluator based on
-    numerical metrics and heuristic issue flags.
-    \item \textbf{Uncalibrated single LLM:} one LLM produces a structured
-    verdict from the same case evidence.
-    \item \textbf{Calibrated single LLM:} the single-LLM prompt is constrained
-    to approximate the metrics-only reference and preserve heuristic labels.
-    \item \textbf{Calibrated single LLM with explanation:} the calibrated
-    verdict is followed by a second LLM call that explains the fixed verdict.
-\end{itemize}
+\paragraph{Agreement metrics.}
+We treat each issue label the reference flags as the positive class and report the standard precision/recall/F1 vocabulary, so substitution scoring and ground-truth scoring use one set of names. \emph{Recall} is the fraction of reference issue labels the system also flags (previously called ``detection rate''); \emph{precision} is the fraction of system-flagged labels the reference also flags; \emph{F1} is their harmonic mean; and \emph{exact-match rate} is the fraction of cases whose issue set is identical to the reference. We also report \emph{assessment/severity/action agreement} --- the fraction of cases with an identical scalar \texttt{overall\_assessment}, \texttt{severity}, or \texttt{recommended\_action}.
 
-\subsection{Metrics}
+\paragraph{Setup and cost.}
+All LLM runs use \texttt{llama-3.1-8b-instant} at temperature 0.2. Groq's free tier costs nothing but caps throughput (30 requests/min, 6K tokens/min, 14.4K requests/day), so runs insert ${\sim}70$\,s delays between calls and between cases; the debate additionally had to be capped at one specialist round and 250 completion tokens after a Judge request hit 6005 tokens against the 6000-token ceiling. The cost columns are therefore \emph{estimates} --- token counts $\times$ Groq's published per-token price --- indicating relative compute rather than money actually spent, which was zero.
 
-Evaluation focuses on agreement with the metrics-only reference:
-\begin{itemize}
-    \item \textbf{Detection rate:} percentage of taxonomy issue labels from the
-    metrics-only reference that are also identified by the evaluated system.
-    \item \textbf{False-positive rate:} percentage of cases where the evaluated
-    system adds issue labels absent from the reference.
-    \item \textbf{Exact match rate:} percentage of cases for which the complete
-    predicted issue-label set exactly matches the metrics-only reference set.
-\end{itemize}
+\section{Experiments and Results}
+\paragraph{Phase 1: comparing architectures.}
+Table~\ref{tab:systems} reports the three architectures scored against the team-drafted reference. This stage exercised the whole system end to end --- prompt safety, transcript saving, verdict parsing, and quota-safe orchestration. The headline result is uncomfortable: the fully deterministic baseline leads on recall (88.9\%) and precision (96.0\%), and the multi-agent debate is worst on every metric (recall 66.7\%, exact match 0\%) at roughly double the per-case cost. The debate's failures were diagnostic, not random. It \emph{over-flagged} the semantic label \texttt{inconsistent\_work\_profile} --- predicting it in 9 of 10 cases though the reference contained it in only 3, which is precisely why its precision collapses to 54.6\% --- and \emph{under-detected} \texttt{fragile\_counterfactual}, dropping it even though the flag was present in the heuristic evidence the Judge received. A confound points away from the architecture itself: debate prompts run 13--16K tokens against ${\sim}3$--4K for the single LLM on the \emph{same} 8B model, so the gap is consistent with the small model losing coherence in long context. Two decisions followed: we removed \texttt{inconsistent\_work\_profile} from the scored taxonomy (its heuristic almost never fired while LLMs over-applied it, leaving five labels), and we reframed the closeout experiment around substitution.
 
-\subsection{Implementation Details}
-
-The implementation is written in Python. Counterfactuals are generated with
-DiCE, and the LLM-based evaluators are implemented with AutoGen. The final
-Phase 2 experiments use Groq with \texttt{llama-3.1-8b-instant}.
-
-\begin{table}[H]
+\begin{table}[t]
 \centering
-\small
-\begin{tabular}{lcc}
+\scriptsize
+\setlength{\tabcolsep}{5pt}
+\caption{Phase 1: agreement of the three evaluators with the team-drafted reference labels (label-level \%, with exact issue-set match). Calls per case: metrics-only 0, single LLM 1, debate 4+.}
+\label{tab:systems}
+\begin{tabular}{@{}lrrrr@{}}
 \toprule
-Setting & Calibrated LLM & LLM + explanation \\
+System & Prec & Recall & F1 & Exact \\
 \midrule
-Framework & AutoGen & AutoGen \\
-Provider & Groq & Groq \\
-Model & \multicolumn{2}{c}{\texttt{llama-3.1-8b-instant}} \\
-Temperature & \multicolumn{2}{c}{0.2} \\
-Max tokens & 400 & 700 \\
+Metrics-only & 96.0 & 88.9 & 92.3 & 60 \\
+Single LLM & 95.7 & 81.5 & 88.0 & 60 \\
+Multi-agent debate & 54.6 & 66.7 & 60.0 & 0 \\
 \bottomrule
 \end{tabular}
-\caption{LLM configuration used in the final Phase 2 experiments.}
-\label{tab:llm-config}
 \end{table}
 
-\noindent
-The temperature is set to 0.2 to keep outputs conservative while avoiding fully
-deterministic generation. The final explainability run uses a larger completion
-budget because it adds a second-stage human-readable explanation. Earlier
-multi-agent experiments used a smaller 250-token budget to stay under Groq's
-token limits, but the final Phase 2 evaluation focuses on the single-LLM
-substitution and explanation pipeline.
+\paragraph{Methodology pivot.}
+A second problem is that the draft labels were authored by the same team that wrote the heuristics --- the file itself is marked an ``initial human-perspective draft for team review'' --- so any agreement between heuristic coverage and the labels is partly circular. We therefore stop presenting them as independent truth. Phase 2 makes the deterministic metrics-only evaluator the reference system and measures how closely an LLM approximates it, and what interpretive value it adds.
 
-\section{Results and Analysis}
-
-Table~\ref{tab:results} summarizes the main experimental results.
-
-\begin{table}[H]
+\begin{table}[t]
 \centering
-\small
-\begin{tabular}{lccc}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\caption{Phase 2: substitution against the metrics-only reference (label-level \%, plus estimated USD/case). Scalar assessment agreement stays at 50\% throughout.}
+\label{tab:phase2}
+\begin{tabular}{@{}lrrrrr@{}}
 \toprule
-System & Detect. & FP & Exact \\
+System & Prec & Recall & F1 & Exact & Cost \\
 \midrule
-Uncalibrated single LLM & 84.0\% & 0.0\% & 60.0\% \\
-Calibrated single LLM & 96.0\% & 0.0\% & 90.0\% \\
-LLM + explanation layer & 96.0\% & 10.0\% & 80.0\% \\
+Uncalibrated single LLM & 100 & 84 & 91.3 & 60 & .00029 \\
+Calibrated single LLM & 100 & 96 & 98.0 & 90 & .00030 \\
+Calibrated $+$ explanation & 96 & 96 & 96.0 & 80 & .00050 \\
 \bottomrule
 \end{tabular}
-\caption{Substitution scores against the metrics-only reference.}
-\label{tab:results}
 \end{table}
 
-Prompt calibration substantially improves issue-label substitution. Detection
-increases from 84.0\% to 96.0\%, and exact match increases from 60.0\% to
-90.0\%. This shows that the LLM performs best when it is instructed to follow
-the deterministic heuristic evidence rather than act as a free-form evaluator.\\
-\newline
-The final explainability run keeps the same 96.0\% detection rate but has lower
-exact match, 80.0\%, and a 10.0\% false-positive rate. This is interpreted as
-normal LLM variability in a fresh run, not as the explanation layer changing the
-labels: the explanation is generated only after the verdict is fixed.
+\paragraph{Phase 2: calibration.}
+Prompt calibration produced the main quantitative gain (Table~\ref{tab:phase2}): recall rose from 84\% to 96\% and exact issue-set match from 60\% to 90\%, with precision held at 100\% (no extra labels introduced). The gain concentrated exactly where the uncalibrated model was failing --- the silently dropped \texttt{fragile\_counterfactual}. Case 7 is illustrative: two of its counterfactuals have \texttt{cf\_confidence} $\approx 0.548$ and $0.553$, just inside the $[0.5,0.6)$ fragility band, and the calibrated model recovered the label to reach an exact match where the uncalibrated run had missed it. One disagreement persists (case 0), which we keep rather than hide: even explicit calibration does not guarantee substitution, because the model still tends to prioritise the most semantically salient issues over a low-severity robustness label. This supports treating each disagreement as a site for inspection --- the LLM may have erred, but a rule may also be too rigid.
+
+\paragraph{Phase 2: explainability.}
+The explainability run preserved 96\% recall, but precision dipped to 96\% (one extra label) and exact match fell to 80\%. This is not the explanation step editing a verdict --- the explanation is generated \emph{after} the verdict is fixed --- but ordinary stochastic variance in a fresh run, concentrated on two boundary cases. Its value is qualitative: the \texttt{expert\_explanation} field turns terse labels into a readable account of why a set is fragile, implausible, or over-burdensome, at ${\sim}67\%$ higher estimated cost per case. Notably, scalar agreement stayed near 50\% across all runs: matching the issue \emph{set} is easier than matching the reference's full severity/assessment/action policy, because the 8B model gravitates to a harsher qualitative judgement once any issue is present.
 
 \section{Discussion}
+Three conclusions follow. First, deterministic evaluation is the right backbone here: it is free after setup, reproducible, auditable, and directly tied to the recourse policy, and it forces the evaluation's assumptions into the open --- which features are mutable, which causal changes are accepted, and which signals are merely metric-level warnings rather than scored issues. Second, the LLM is useful precisely when its role is constrained. Unconstrained, it under-detects fragile cases and invents semantic labels (the Phase-1 debate); calibrated to start from the heuristic union and forbidden to add unsupported labels, a single 8B model substitutes the reference issue set closely (96\% recall, 90\% exact match) while contributing a natural-language rationale. This is a clean division of labour: rules define the evidence surface, the LLM interprets and communicates it. Third, more agents are not automatically better. The adversarial debate enriched the project technically --- role orchestration, transcript analysis, judge parsing --- but empirically over-flagged and under-detected under the small-model, quota-safe setting. At this scale the calibrated single LLM is the stronger LLM-based evaluator, and the persistent ${\sim}50\%$ scalar agreement shows that even it does not yet substitute the reference's full severity/action policy.
 
-The results support the Phase 2 framing of the project. The deterministic
-metrics-only evaluator is the stable backbone: it defines the reference issue
-labels and keeps the evaluation auditable. The calibrated single LLM can
-approximate this reference well at the issue-label level, but only when the
-prompt explicitly tells it to preserve deterministic heuristic evidence. This
-suggests that the LLM is more reliable as a structured substituter than as an
-independent judge.\\
-\newline
-The explanation layer provides the clearest added value. It does not improve the
-quantitative substitution scores, and it is not allowed to change the verdict.
-Instead, it translates the fixed structured assessment into language that is
-easier for a reader to understand. This is useful because the metrics-only
-reference is precise and reproducible, but its raw issue labels and thresholds
-are not always self-explanatory.\\
-\newline
-The main limitation is that the reference itself is rule-based. It reflects our
-designed heuristics, not an external human-labeled ground truth. In addition,
-LLM outputs remain variable across runs, as shown by the difference between the
-best calibrated run and the final explainability run. Future work could test a
-larger model, add human annotations, or calibrate the metric-warning thresholds
-such as \texttt{count\_diversity\_low}.
+\section{Limitations and Reproducibility}
+The study is intentionally small: one dataset, one classifier family, ten sampled unfavourable cases, and one main 8B Groq model. The deterministic reference is a designed artifact encoding our policy choices, not an external adjudicated benchmark, and the calibration confound (model size vs.\ architecture) was diagnosed but not fully isolated --- testing a 70B model on the debate is the obvious next step. A stronger study would add independent human re-annotation with inter-annotator agreement, more datasets, larger models, and a sensitivity analysis over the heuristic thresholds of Table~\ref{tab:heuristics}. The GitHub repository contains the code, walkthrough documentation, scripts, and result artifacts needed to reproduce every number above: \url{https://github.com/Teytey2002/Multi-Agent_AdversarialEvaluationofCounterfactualExplanations}.
 
 \section{Conclusion}
-
-This report studied counterfactual explanation evaluation for income prediction.
-We generated counterfactuals with DiCE, evaluated them with a deterministic
-metrics-only reference, and tested whether a single LLM could approximate and
-explain that reference. The final conclusion is that deterministic rules remain
-the evaluation backbone, while the calibrated LLM is useful as a low-cost
-substitution and explanation layer. Its strongest contribution is not superior
-correctness, but clearer human-facing interpretation of an auditable rule-based
-verdict.
+We built and evaluated an end-to-end pipeline for assessing DiCE counterfactual explanations beyond standard numerical metrics, comparing a deterministic heuristic reference, a single LLM, and a multi-agent debate over one shared case representation. The finding is pragmatic: deterministic heuristics are the most reliable backbone, a calibrated single LLM can approximate that reference and add readable explanations at negligible cost, and the multi-agent debate is a documented negative result --- more agents did not yield better evaluation at this scale. The closeout system therefore combines structured recourse rules, substitution scoring, and an optional LLM explanation layer as a compact and defensible approach for a course-scale counterfactual evaluation study.
 
 \bibliography{references}
 

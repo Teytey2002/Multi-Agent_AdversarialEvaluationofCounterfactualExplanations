@@ -1,4 +1,31 @@
-\begin{thebibliography}{0}
+\begin{thebibliography}{4}
 \providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Karimi et~al.(2021)Karimi, Barthe, Balle, and
+  Valera}]{karimi2021algorithmic}
+Karimi, A.-H.; Barthe, G.; Balle, B.; and Valera, I. 2021.
+\newblock A Survey of Algorithmic Recourse: Definitions, Formulations,
+  Solutions, and Prospects.
+\newblock \emph{arXiv preprint arXiv:2010.04050}.
+
+\bibitem[{Mothilal, Sharma, and Tan(2020)}]{mothilal2020explaining}
+Mothilal, R.~K.; Sharma, A.; and Tan, C. 2020.
+\newblock Explaining Machine Learning Classifiers through Diverse
+  Counterfactual Explanations.
+\newblock In \emph{Proceedings of the 2020 Conference on Fairness,
+  Accountability, and Transparency}, 607--617. ACM.
+
+\bibitem[{Poyiadzi et~al.(2020)Poyiadzi, Sokol, Santos-Rodriguez, De~Bie, and
+  Flach}]{poyiadzi2020face}
+Poyiadzi, R.; Sokol, K.; Santos-Rodriguez, R.; De~Bie, T.; and Flach, P. 2020.
+\newblock {FACE}: Feasible and Actionable Counterfactual Explanations.
+\newblock In \emph{Proceedings of the AAAI/ACM Conference on AI, Ethics, and
+  Society}, 344--350. ACM.
+
+\bibitem[{Wachter, Mittelstadt, and Russell(2017)}]{wachter2017counterfactual}
+Wachter, S.; Mittelstadt, B.; and Russell, C. 2017.
+\newblock Counterfactual Explanations without Opening the Black Box: Automated
+  Decisions and the GDPR.
+\newblock \emph{Harvard Journal of Law \& Technology}, 31(2): 841--887.
 
 \end{thebibliography}
