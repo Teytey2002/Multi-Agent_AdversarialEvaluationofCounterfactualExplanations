@@ -217,13 +217,20 @@ The output contains:
 - agreement on `severity`;
 - agreement on `recommended_action`.
 
-The central issue-set metrics are:
+The central issue-set metrics use the same **Phase 1 vocabulary**
+(precision / recall / F1) as the legacy ground-truth scorer, so substitution
+scoring and ground-truth scoring report the same labels. Each reference issue
+label is treated as the positive class:
 
 | Metric | Meaning |
 |---|---|
-| `detection_rate` | Of issues flagged by the reference, what percentage did the LLM system also flag? |
-| `false_positive_rate` | Percentage of cases where the LLM system flagged at least one issue absent from the reference. |
+| `recall` | Of the issue labels flagged by the reference, the percentage the LLM system also flagged. (This was previously called `detection_rate`.) |
+| `precision` | Of the issue labels the LLM system flagged, the percentage that the reference also flagged. (Replaces the older per-case `false_positive_rate`.) |
+| `f1` | Harmonic mean of `precision` and `recall`. |
 | `exact_match_rate` | Percentage of cases where the LLM issue set exactly equals the reference issue set. |
+
+The summary also reports the raw `true_positives`, `false_positives`, and
+`false_negatives` label counts behind those rates.
 
 The schema-level agreement metrics are:
 

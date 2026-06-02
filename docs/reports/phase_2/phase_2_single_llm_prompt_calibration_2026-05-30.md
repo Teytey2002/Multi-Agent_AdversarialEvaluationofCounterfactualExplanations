@@ -140,27 +140,37 @@ Latest output: results/debate_outputs/llama-3.1-8b-instant_single_llm_latest.jso
 
 ## 4. Substitution Results
 
+Metrics use the unified Phase 1 vocabulary (precision / recall / F1), with each
+reference issue label treated as the positive class. `recall` is the measure
+previously reported as `detection_rate`.
+
 | Metric | Uncalibrated single LLM | Calibrated single LLM | Change |
 |---|---:|---:|---:|
-| Detection rate | 84.0% | 96.0% | +12.0 pp |
-| False-positive rate | 0.0% | 0.0% | 0.0 pp |
+| Precision | 100.0% | 100.0% | 0.0 pp |
+| Recall | 84.0% | 96.0% | +12.0 pp |
+| F1 | 91.3% | 98.0% | +6.7 pp |
 | Exact-match rate | 60.0% | 90.0% | +30.0 pp |
 | Assessment agreement | 50.0% | 50.0% | 0.0 pp |
 | Severity agreement | 60.0% | 50.0% | -10.0 pp |
 | Recommended-action agreement | 70.0% | 60.0% | -10.0 pp |
 | Perfect issue-set matches | 6 / 10 | 9 / 10 | +3 cases |
 
-The same result appears directly in the scorer output. The uncalibrated
-substitution summary was:
+Both runs had zero false-positive labels, so precision is 100% in each; the
+gain is entirely in recall (and therefore F1). The same result appears directly
+in the scorer output. The uncalibrated substitution summary was:
 
 ```json
 {
-  "detection_rate": 84.0,
-  "false_positive_rate": 0.0,
+  "precision": 100.0,
+  "recall": 84.0,
+  "f1": 91.3,
   "exact_match_rate": 60.0,
   "assessment_agreement": 50.0,
   "severity_agreement": 60.0,
   "recommended_action_agreement": 70.0,
+  "true_positives": 21,
+  "false_positives": 0,
+  "false_negatives": 4,
   "total_cases": 10,
   "cases_with_perfect_match": 6
 }
@@ -170,12 +180,16 @@ The calibrated substitution summary became:
 
 ```json
 {
-  "detection_rate": 96.0,
-  "false_positive_rate": 0.0,
+  "precision": 100.0,
+  "recall": 96.0,
+  "f1": 98.0,
   "exact_match_rate": 90.0,
   "assessment_agreement": 50.0,
   "severity_agreement": 50.0,
   "recommended_action_agreement": 60.0,
+  "true_positives": 24,
+  "false_positives": 0,
+  "false_negatives": 1,
   "total_cases": 10,
   "cases_with_perfect_match": 9
 }
@@ -342,7 +356,7 @@ For completeness:
 
 | Metric | Uncalibrated | Calibrated |
 |---|---:|---:|
-| Legacy-label detection | 74.07% | 85.19% |
+| Legacy-label recall | 74.07% | 85.19% |
 | Legacy-label exact match | 50.0% | 60.0% |
 | Successful cases | 10 / 10 | 10 / 10 |
 
@@ -360,7 +374,7 @@ It establishes three empirical points:
 
 1. The uncalibrated Phase 2 single LLM was a valid baseline, not wasted work.
 2. A narrow, evidence-faithful prompt improved issue-label substitution from
-   84% to 96% detection and from 60% to 90% exact match.
+   84% to 96% recall and from 60% to 90% exact match.
 3. Full verdict substitution remains incomplete because scalar assessment,
    severity, and action decisions are not yet aligned with the metrics-only
    reference policy.
@@ -377,7 +391,7 @@ The calibrated single LLM becomes valuable on different comparison axes:
 |---|---|---|
 | Cost and speed | Best option: deterministic and free after setup | Low cost, but still API-dependent |
 | Reproducibility | Fully reproducible for the same inputs | Mostly stable, but model sampling and provider behavior remain external factors |
-| Issue-label substitution | Defines the reference behavior | Strong approximation after calibration: 96% detection, 90% exact match |
+| Issue-label substitution | Defines the reference behavior | Strong approximation after calibration: 96% recall, 90% exact match |
 | Explanation | Structured but mostly rule-based | Produces a compact natural-language rationale for each verdict |
 | Case-level disagreement analysis | Flags what the rules encode | Can expose when a rule may be too rigid, incomplete, or semantically questionable |
 | Adaptability | Requires code-level heuristic changes | Can be redirected through prompt changes, within limits |

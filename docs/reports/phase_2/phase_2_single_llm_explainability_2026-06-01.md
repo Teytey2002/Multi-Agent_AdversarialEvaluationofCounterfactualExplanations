@@ -160,14 +160,19 @@ smoke testing.
 
 The final explainability run was scored against the metrics-only reference:
 
-| System | Detect% | FP% | Exact match | Assess agree | Severity agree | Action agree | Perfect cases |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| Calibrated single LLM, no explanation | 96.0 | 0.0 | 90.0 | 50.0 | 50.0 | 60.0 | 9 / 10 |
-| Explainability layer run | 96.0 | 10.0 | 80.0 | 50.0 | 50.0 | 60.0 | 8 / 10 |
+Metrics use the unified Phase 1 vocabulary (precision / recall / F1), each
+reference issue label treated as the positive class. `recall` is the measure
+previously called `detection_rate`.
 
-The issue-label detection rate stayed at 96%. Exact match decreased from 90% to
-80%, because this was a fresh LLM run and the first-stage verdict varied on two
-cases:
+| System | Precision% | Recall% | F1% | Exact match | Assess agree | Severity agree | Action agree | Perfect cases |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Calibrated single LLM, no explanation | 100.0 | 96.0 | 98.0 | 90.0 | 50.0 | 50.0 | 60.0 | 9 / 10 |
+| Explainability layer run | 96.0 | 96.0 | 96.0 | 80.0 | 50.0 | 50.0 | 60.0 | 8 / 10 |
+
+Recall stayed at 96%, while precision dipped from 100% to 96% because the fresh
+run added one extra label (so F1 moved from 98% to 96%). Exact match decreased
+from 90% to 80%, because this was a fresh LLM run and the first-stage verdict
+varied on two cases:
 
 | Case | Difference vs metrics-only reference |
 |---:|---|
@@ -230,7 +235,7 @@ The main finding is that explainability adds qualitative value, not scoring
 value.
 
 On issue-label substitution, the calibrated single LLM was already strong. The
-explainability layer did not improve the aggregate detection rate, and the final
+explainability layer did not improve aggregate recall, and the final
 fresh run had slightly lower exact-match agreement because of normal LLM
 variation. The layer's value is instead that it makes each verdict easier to
 inspect, especially when the single LLM and the metrics-only reference disagree.
